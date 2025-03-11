@@ -2,7 +2,7 @@ from flask import Flask, render_template
 import sqlite3
 import pandas as pd
 
-from data_manager import DB_PATH, get_player_aggregates, get_global_stats
+from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats
 
 app = Flask(__name__)
 
