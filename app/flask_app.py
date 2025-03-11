@@ -11,6 +11,15 @@ def update_db():
     update_players()  # Exécute la mise à jour
     return jsonify({"message": "Base de données mise à jour !"}), 200
 
+@app.route("/download-db", methods=["GET"])
+def download_db():
+    # Envoie la base de données en pièce jointe
+    return send_file(
+        "data/lol_data.db",
+        as_attachment=True, 
+        download_name="lol_data.db"
+    )
+
 def get_all_players():
     """Charge la table players en DataFrame Pandas."""
     conn = sqlite3.connect(DB_PATH)
