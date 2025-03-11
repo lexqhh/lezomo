@@ -1,6 +1,8 @@
 name: Auto Update DB
 
-on: workflow_dispatch
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # Toutes les 10 minutes
 
 jobs:
   update-db:
