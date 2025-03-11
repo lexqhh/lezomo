@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, send_file
 import sqlite3
 import pandas as pd
 
@@ -13,10 +13,14 @@ def update_db():
 
 @app.route("/download-db", methods=["GET"])
 def download_db():
-    # Envoie la base de données en pièce jointe
+    # Récupère le chemin absolu du fichier DB
+    base_dir = os.path.dirname(os.path.abspath(__file__)) 
+    # remonte d'un cran si "data" est au même niveau que le dossier "app"
+    db_path = os.path.join(base_dir, "..", "data", "lol_data.db")
+
     return send_file(
-        "data/lol_data.db",
-        as_attachment=True, 
+        db_path,
+        as_attachment=True,
         download_name="lol_data.db"
     )
 
