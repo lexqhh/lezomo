@@ -4,8 +4,6 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 
-
-
 load_dotenv()
 API_KEY = os.getenv("RIOT_API_KEY")
 
@@ -42,7 +40,7 @@ def create_database():
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS matches (
-            match_id TEXT PRIMARY KEY,
+            match_id TEXT,
             player_id TEXT,
             champion TEXT,
             role TEXT,
@@ -51,6 +49,7 @@ def create_database():
             assists INTEGER,
             game_duration INTEGER,
             win BOOLEAN,
+            PRIMARY KEY (match_id, player_id),
             FOREIGN KEY (player_id) REFERENCES players(player_id)
         )
     ''')
@@ -92,7 +91,12 @@ def get_ranked_stats(summoner_id):
         return None
 
 def update_recent_matches(puuid, player_id, conn, cursor):
-    """Récupère les 20 dernières parties d'un joueur et stocke uniquement les matchs classés solo."""
+    """Récupère les dernières parties d'un joueur et stocke uniquement les joueurs de players.txt."""
+    
+    # Lire les joueurs autorisés depuis players.txt
+    with open(PLAYERS_FILE, "r") as file:
+        allowed_players = {line.strip().split("#")[0] + "#" + line.strip().split("#")[1] for line in file.readlines()}
+
     match_ids_url = f"https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?start=0&count=20"
     headers = {"X-Riot-Token": API_KEY}
 
@@ -110,28 +114,33 @@ def update_recent_matches(puuid, player_id, conn, cursor):
             continue
 
         match_data = match_response.json()
-        
-        # Filtrer par queueId = 420 (RANKED_SOLO_5x5)
+
+        # Vérifie que c'est bien un match classé solo (queueId=420)
         if match_data['info']['queueId'] != 420:
             continue
 
-        # Insérer la partie
+        # Insérer uniquement les joueurs présents dans players.txt
         for participant in match_data['info']['participants']:
-            if participant['puuid'] == puuid:
+            match_player_id = f"{participant['riotIdGameName']}#{participant['riotIdTagline']}"
+
+            if match_player_id in allowed_players:  # ✅ Vérifie si le joueur est autorisé
                 cursor.execute('''
                     INSERT INTO matches (match_id, player_id, champion, role, kills, deaths, assists, game_duration, win)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(match_id) DO NOTHING
-                ''', (match_id,
-                      player_id,
-                      participant['championName'],
-                      participant['teamPosition'],
-                      participant['kills'],
-                      participant['deaths'],
-                      participant['assists'],
-                      match_data['info']['gameDuration'],
-                      participant['win']))
-                break
+                    ON CONFLICT(match_id, player_id) DO NOTHING
+                ''', (
+                    match_id,
+                    match_player_id,
+                    participant['championName'],
+                    participant['teamPosition'],
+                    participant['kills'],
+                    participant['deaths'],
+                    participant['assists'],
+                    match_data['info']['gameDuration'],
+                    participant['win']
+                ))
+
+
 
 def get_global_stats():
     """
