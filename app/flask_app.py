@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify, send_file
 import sqlite3
 import pandas as pd
+import os
 
 from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players
 
