@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700&family=Roboto:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 20px;
+            background: #1f1f1f;
+            color: #ddd;
+        }
+        
+        h1, h2 {
+            text-align: center;
+        }
+        
+        .wave-text span {
+    display: inline-block;
+    font-size: 4rem;
+    animation: wave 2s ease-in-out infinite;
+}
+
+.wave-text span:nth-child(1) {
+    animation-delay: 0s;
+}
+.wave-text span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.wave-text span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+.wave-text span:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+@keyframes wave {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+        .container, .three-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .ranking-box {
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 20px;
+            width: 250px;
+            text-align: center;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .ranking-box:hover {
+            transform: translateY(-5px);
+        }
+        
+        .ranking-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffcc00;
+            text-transform: uppercase;
+        }
+        
+        .player-row {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .player-name {
+            text-align: left;
+            font-weight: 400;
+        }
+        
+        .score {
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .games-played {
+            font-size: 0.8em;
+            color: #bbb;
+        }
+        
+        table.global-stats {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+        }
+        
+        table.global-stats th, table.global-stats td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            text-align: center;
+        }
+        
+        table.global-stats th {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .kda-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }

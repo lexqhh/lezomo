@@ -1,11 +1,39 @@
-from flask import Flask, render_template, jsonify, send_file
+from flask import Flask, render_template, jsonify, send_file, url_for
 import sqlite3
 import pandas as pd
 import os
 
 from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=os.path.join(os.getcwd(), "static"))
+
+rank_value = {
+    "CHALLENGER": 1, 
+    "GRANDMASTER": 2,
+    "MASTER": 3,
+    "DIAMOND": 4,
+    "PLATINUM": 5,
+    "GOLD": 6,
+    "SILVER": 7,
+    "BRONZE": 8,
+    "IRON": 9,
+    "UNRANKED": 10
+}
+
+def get_rank_score(player):
+    # Ex: player["rank"] = "PLATINUM", player["tier"] = "IV"
+    # On combine rank_value + tier
+    base = rank_value.get(player["rank"], 10)  # par défaut 10 => UNRANKED
+    # Si le rank est PLATINUM et tier = "IV", on peut rajouter un offset
+    # ex: "I" = +0, "II" = +0.25, "III" = +0.5, "IV" = +0.75
+    tier_offset = {
+        "I": 0.0,
+        "II": 0.25,
+        "III": 0.50,
+        "IV": 0.75
+    }
+    offset = tier_offset.get(player["tier"], 0)
+    return base + offset
 
 @app.route("/update-db", methods=["GET"])
 def update_db():
@@ -79,6 +107,9 @@ def index():
             "player_id": player_id,
             "game_name": rowp["game_name"],
 
+            "rank": rowp["rank"],    
+            "tier": rowp["tier"], 
+
             "kills": agg["kills"],
             "deaths": agg["deaths"],
             "assists": agg["assists"],
@@ -115,6 +146,12 @@ def index():
     # 1) Unique Champions
     most_champions = df_all.sort_values("unique_champions", ascending=False).head(6).to_dict(orient="records")
 
+    #Rank score
+    df_all["rank_score"] = df_all.apply(lambda row: get_rank_score(row), axis=1)
+    # Tri du plus petit rank_score au plus grand => le plus haut rang
+    best_rank = df_all.sort_values("rank_score", ascending=True).head(6).to_dict(orient="records")
+
+
     return render_template(
         "rankings.html",
         stats=stats_global,
@@ -131,9 +168,11 @@ def index():
         best_total_time_list=best_total_time,
 
         # "MOST CHAMPIONS"
-        most_champions_list=most_champions
+        most_champions_list=most_champions,
 
-    )
+        #RANKS
+        best_rank_list=best_rank,
+)
 
 
 if __name__ == "__main__":
