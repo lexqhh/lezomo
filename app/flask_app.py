@@ -1,10 +1,15 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import sqlite3
 import pandas as pd
 
-from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats
+from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players
 
 app = Flask(__name__)
+
+@app.route("/update-db", methods=["GET"])
+def update_db():
+    update_players()  # Exécute la mise à jour
+    return jsonify({"message": "Base de données mise à jour !"}), 200
 
 def get_all_players():
     """Charge la table players en DataFrame Pandas."""
