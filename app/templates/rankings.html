@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Lezomo</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/vnd.icon" href="../../static/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         
     </style>
 </head>
 <body>
+    
     <div class="wave-container">
         <h1 class="wave-text">
             <span>L</span><span>E</span><span>Z</span><span>O</span><span>M</span><span>O</span>
@@ -16,7 +20,6 @@
     </div>
 
     <!-- Stats Globales -->
-    <h2>Statistiques Globales</h2>
     <table class="global-stats">
         <tr>
             <th>Total Games</th>
@@ -34,11 +37,14 @@
         </tr>
     </table>
 
+    <h2>STATISTIQUES DES SCOOTS</h2>
     <!-- 3 colonnes : Most Kills / Deaths / Assists -->
     <div class="container">
         <!-- MOST KILLS -->
         <div class="ranking-box">
-            <div class="ranking-title">KILLS</div>
+            <div class="ranking-title">
+                <i class="fa-solid fa-crosshairs"></i> KILLS
+            </div>
             {% if most_kills_list %}
                 {% for player in most_kills_list %}
                     <div class="player-row">
@@ -56,7 +62,9 @@
 
         <!-- MOST DEATHS -->
         <div class="ranking-box">
-            <div class="ranking-title">DEATHS</div>
+            <div class="ranking-title">
+                <i class="fa-solid fa-skull"></i> DEATHS
+            </div>
             {% if most_deaths_list %}
                 {% for player in most_deaths_list %}
                     <div class="player-row">
@@ -74,7 +82,9 @@
 
         <!-- MOST ASSISTS -->
         <div class="ranking-box">
-            <div class="ranking-title">ASSISTS</div>
+            <div class="ranking-title">
+                <i class="fa-solid fa-handshake-angle"></i> ASSISTS
+            </div>
             {% if most_assists_list %}
                 {% for player in most_assists_list %}
                     <div class="player-row">
@@ -94,27 +104,24 @@
     <!-- 3 colonnes : RANK, KDA, CHAMPIONS UNIQUE -->
     <div class="container">
         <!-- RANK -->
-        <div class="ranking-box">
-            <div class="ranking-title">RANK</div>
-            {% if best_rank_list %}
-                {% for player in best_rank_list %}
-                    <div class="player-row">
-                        <div class="player-name">
-                            {{ loop.index }}. {{ player.game_name }}
-                            <div class="games-played">({{ player.total_games }} games)</div>
-                        </div>
-                        <!-- On peut afficher: {{ player.rank }} {{ player.tier }} -->
-                        <div class="score">{{ player.tier }} {{ player.rank }}</div>
+        <div class="ranking-box rank-box">
+            <div class="ranking-title"><i class="fa-solid fa-ranking-star"></i> RANK</div>
+            {% for player in best_rank_list %}
+                <div class="player-row">
+                    <div class="player-name">
+                        {{ loop.index }}. {{ player.game_name }}
+                        <div class="games-played">({{ player.total_games }} games)</div>
                     </div>
-                {% endfor %}
-            {% else %}
-                <p>No data</p>
-            {% endif %}
+                    <div class="score">{{ player.tier }} {{ player.rank }}</div>
+                </div>
+            {% endfor %}
         </div>
 
         <!-- BEST KDA -->
         <div class="ranking-box">
-            <div class="ranking-title">KDA</div>
+            <div class="ranking-title">
+                <i class="fa-solid fa-calculator"></i> KDA
+            </div>
             {% if best_kda_list %}
                 {% for player in best_kda_list %}
                     <div class="player-row">
@@ -133,7 +140,9 @@
 
         <!-- CHAMPION UNIQUE -->
         <div class="ranking-box">
-            <div class="ranking-title">CHAMPION UNIQUE</div>
+            <div class="ranking-title">
+                <i class="fa-solid fa-chess-queen"></i> CHAMPION UNIQUE
+            </div>
             {% if most_champions_list %}
                 {% for player in most_champions_list %}
                     <div class="player-row">
@@ -154,7 +163,9 @@
     <div class="three-container">
         <!-- BEST WINRATE -->
         <div class="ranking-box">
-            <div class="ranking-title">WINRATE</div>
+            <div class="ranking-title">
+                <i class="fa-solid fa-percent"></i> WINRATE
+            </div>
             {% if best_winrate_list %}
                 {% for player in best_winrate_list %}
                     <div class="player-row">
@@ -173,7 +184,9 @@
 
         <!-- LOWEST AVG TIME -->
         <div class="ranking-box">
-            <div class="ranking-title">TEMPS.MOY PER GAME</div>
+            <div class="ranking-title">
+                <i class="fa-solid fa-stopwatch"></i> TEMPS.MOY PER GAME
+            </div>
             {% if lowest_avg_time_list %}
                 {% for player in lowest_avg_time_list %}
                     <div class="player-row">
@@ -194,7 +207,9 @@
 
         <!-- TOTAL TIME PLAYED -->
         <div class="ranking-box">
-            <div class="ranking-title">TEMPS PERDU</div>
+            <div class="ranking-title">
+                <i class="fa-solid fa-hourglass-end"></i> TEMPS PERDU
+            </div>
             {% if best_total_time_list %}
                 {% for player in best_total_time_list %}
                     <div class="player-row">
@@ -217,6 +232,14 @@
 <div class="three-container">
     <!-- ...best_winrate, lowest_avg_time, best_total_time... -->
 </div>
+
+<footer>
+    <p>🏆 Lezomo © 2025 - Stats LoL entre amis très très proches 🌈</p>
+    <div class="last-update">
+        Mis à jour le : j'sais pas comment le faire automatiquement
+    </div>
+    
+</footer>
 
 </body>
 </html>

@@ -15,6 +15,13 @@
     display: inline-block;
     font-size: 4rem;
     animation: wave 2s ease-in-out infinite;
+    font-family: 'Poppins', sans-serif;
+}
+
+.wave-text span:hover {
+    color: #ffcc00;
+    transform: scale(1.2);
+    transition: transform 0.3s, color 0.3s;
 }
 
 .wave-text span:nth-child(1) {
@@ -53,20 +60,35 @@
             padding: 20px;
             width: 250px;
             text-align: center;
-            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
             transition: transform 0.3s ease-in-out;
         }
         
         .ranking-box:hover {
-            transform: translateY(-5px);
+            transform: scale(1.01);
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
         }
         
+        .rank-box .player-name {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 65%; /* évite le débordement horizontal */
+        }
+        
+        .rank-box .score {
+            width: 35%;
+            text-align: right;
+            padding-left: 5px;
+        }
+
         .ranking-title {
             font-size: 1.4em;
             font-weight: bold;
             margin-bottom: 15px;
             color: #ffcc00;
             text-transform: uppercase;
+            font-family: 'Poppins', sans-serif;
         }
         
         .player-row {
@@ -76,6 +98,7 @@
             padding: 8px;
             border-radius: 6px;
             background: rgba(255, 255, 255, 0.05);
+            font-family: 'Poppins', sans-serif;
         }
         
         .player-name {
@@ -89,7 +112,7 @@
         }
         
         .games-played {
-            font-size: 0.8em;
+            font-size: 0.7em;
             color: #bbb;
         }
         
@@ -97,11 +120,12 @@
             margin: 20px auto;
             border-collapse: collapse;
             width: 80%;
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
+            max-width: 900px;
             overflow: hidden;
             box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+            background-color: rgba(250, 120, 196, 0.05);
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
         }
         
         table.global-stats th, table.global-stats td {
@@ -111,8 +135,9 @@
         }
         
         table.global-stats th {
-            background-color: #007bff;
-            color: white;
+            background-color: #e4a1c7a1;
+            color: #ebebeb;
+            font-weight: bold;
         }
         
         .kda-container {
@@ -120,3 +145,101 @@
             justify-content: center;
             margin-bottom: 20px;
         }
+
+        .player-row:nth-child(odd) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .player-row:nth-child(even) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .player-row {
+            transition: background 0.3s, transform 0.2s;
+        }
+        
+        .player-row:hover {
+            background: rgba(255, 204, 0, 0.2);
+            transform: translateX(5px);
+            cursor: pointer;
+        }
+        
+        .ranking-title {
+            word-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.1em;
+            padding: 0 5px;
+            word-spacing: 2px;
+        }
+
+        
+        @media (max-width: 600px) {
+            body {
+                margin: 10px;
+            }
+        
+            .ranking-box, table.global-stats {
+                width: 100%;
+                padding: 10px;
+                min-width: 270px;
+            }
+        
+            .player-row {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+        }        
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 15px;
+            font-size: 0.9em;
+            color: #888;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        body {
+            animation: fadeIn 1s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .last-update {
+            font-size: 0.9em;
+            color: #888;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        h2 {
+            font-family: 'Poppins', sans-serif;
+            color: #ffcc00;
+            font-size: 2em;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 30px 0 20px;
+            position: relative;
+        }
+        
+        h2::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 3px;
+            background-color: #ffffff;
+            margin: 8px auto 0;
+            border-radius: 2px;
+        }
+        
+        
+        
+        
+        
+        
+        
+        
