@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Classements LoL</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700&family=Roboto:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 20px;
+            background: #1f1f1f;
+            color: #ddd;
+        }
+        
+        h1, h2 {
+            text-align: center;
+        }
+        
+        .wave-text span {
+    display: inline-block;
+    font-size: 4rem;
+    animation: wave 2s ease-in-out infinite;
+}
+
+.wave-text span:nth-child(1) {
+    animation-delay: 0s;
+}
+.wave-text span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.wave-text span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+.wave-text span:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+@keyframes wave {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+        .container, .three-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .ranking-box {
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 20px;
+            width: 250px;
+            text-align: center;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .ranking-box:hover {
+            transform: translateY(-5px);
+        }
+        
+        .ranking-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffcc00;
+            text-transform: uppercase;
+        }
+        
+        .player-row {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .player-name {
+            text-align: left;
+            font-weight: 400;
+        }
+        
+        .score {
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .games-played {
+            font-size: 0.8em;
+            color: #bbb;
+        }
+        
+        table.global-stats {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+        }
+        
+        table.global-stats th, table.global-stats td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            text-align: center;
+        }
+        
+        table.global-stats th {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .kda-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-container">
+        <h1 class="wave-text">
+            <span>L</span><span>E</span><span>Z</span><span>O</span><span>M</span><span>O</span>
+        </h1>
+    </div>
+
+    <!-- Stats Globales -->
+    <h2>Statistiques Globales</h2>
+    <table class="global-stats">
+        <tr>
+            <th>Total Games</th>
+            <th>Total Wins</th>
+            <th>Total Losses</th>
+            <th>Winrate</th>
+            <th>Total Time</th>
+        </tr>
+        <tr>
+            <td>{{ stats.total_games }}</td>
+            <td>{{ stats.total_wins }}</td>
+            <td>{{ stats.total_losses }}</td>
+            <td>{{ stats.global_winrate|round(1) }}%</td>
+            <td>{{ stats.formatted_time }}</td>
+        </tr>
+    </table>
+
+    <!-- 3 colonnes : Most Kills / Deaths / Assists -->
+    <div class="container">
+        <!-- MOST KILLS -->
+        <div class="ranking-box">
+            <div class="ranking-title">KILLS</div>
+            {% if most_kills_list %}
+                {% for player in most_kills_list %}
+                    <div class="player-row">
+                        <div class="player-name">
+                            {{ loop.index }}. {{ player.game_name }}
+                            <div class="games-played">({{ player.total_games }} games)</div>
+                        </div>
+                        <div class="score">{{ player.kills }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No data</p>
+            {% endif %}
+        </div>
+
+        <!-- MOST DEATHS -->
+        <div class="ranking-box">
+            <div class="ranking-title">DEATHS</div>
+            {% if most_deaths_list %}
+                {% for player in most_deaths_list %}
+                    <div class="player-row">
+                        <div class="player-name">
+                            {{ loop.index }}. {{ player.game_name }}
+                            <div class="games-played">({{ player.total_games }} games)</div>
+                        </div>
+                        <div class="score">{{ player.deaths }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No data</p>
+            {% endif %}
+        </div>
+
+        <!-- MOST ASSISTS -->
+        <div class="ranking-box">
+            <div class="ranking-title">ASSISTS</div>
+            {% if most_assists_list %}
+                {% for player in most_assists_list %}
+                    <div class="player-row">
+                        <div class="player-name">
+                            {{ loop.index }}. {{ player.game_name }}
+                            <div class="games-played">({{ player.total_games }} games)</div>
+                        </div>
+                        <div class="score">{{ player.assists }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No data</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- BEST KDA (centré au milieu) -->
+    <div class="kda-container">
+        <div class="ranking-box" style="width: 280px;">
+            <div class="ranking-title">KDA</div>
+            {% if best_kda_list %}
+                {% for player in best_kda_list %}
+                    <div class="player-row">
+                        <div class="player-name">
+                            {{ loop.index }}. {{ player.game_name }}
+                            <div class="games-played">({{ player.total_games }} games)</div>
+                        </div>
+                        {% set ratio = ((player.kills + player.assists) / (player.deaths if player.deaths != 0 else 1)) %}
+                        <div class="score">{{ ratio|round(2) }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No data</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 3 colonnes : BEST WINRATE / LOWEST AVG TIME / TOTAL TIME PLAYED -->
+    <div class="three-container">
+        <!-- BEST WINRATE -->
+        <div class="ranking-box">
+            <div class="ranking-title">WINRATE</div>
+            {% if best_winrate_list %}
+                {% for player in best_winrate_list %}
+                    <div class="player-row">
+                        <div class="player-name">
+                            {{ loop.index }}. {{ player.game_name }}
+                            <div class="games-played">({{ player.total_games }} games)</div>
+                        </div>
+                        <!-- Winrate arrondi et affiché avec % -->
+                        <div class="score">{{ player.winrate|round(1) }}%</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No data</p>
+            {% endif %}
+        </div>
+
+        <!-- LOWEST AVG TIME -->
+        <div class="ranking-box">
+            <div class="ranking-title">TEMPS.MOY PER GAME</div>
+            {% if lowest_avg_time_list %}
+                {% for player in lowest_avg_time_list %}
+                    <div class="player-row">
+                        <div class="player-name">
+                            {{ loop.index }}. {{ player.game_name }}
+                            <div class="games-played">({{ player.total_games }} games)</div>
+                        </div>
+                        {% set avg_secs = player.avg_time %}
+                        {% set mins = (avg_secs // 60)|int %}
+                        {% set secs = (avg_secs % 60)|int %}
+                        <div class="score">{{ mins }}:{{ '%02d'|format(secs) }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No data</p>
+            {% endif %}
+        </div>
+
+        <!-- TOTAL TIME PLAYED -->
+        <div class="ranking-box">
+            <div class="ranking-title">TEMPS PERDU</div>
+            {% if best_total_time_list %}
+                {% for player in best_total_time_list %}
+                    <div class="player-row">
+                        <div class="player-name">
+                            {{ loop.index }}. {{ player.game_name }}
+                            <div class="games-played">({{ player.total_games }} games)</div>
+                        </div>
+                        <!-- time_hours arrondi, suffix h -->
+                        <div class="score">
+                            {{ player.time_hours|round(1) }}h
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No data</p>
+            {% endif %}
+        </div>
+    </div>
+<!-- 3 colonnes WINRATE, AVG TIME, TOTAL TIME -->
+<div class="three-container">
+    <!-- ...best_winrate, lowest_avg_time, best_total_time... -->
+</div>
+
+<!-- MOST CHAMPIONS (en dessous, centré) -->
+<div class="kda-container" style="margin-top: 20px;">
+    <div class="ranking-box" style="width: 280px;">
+        <div class="ranking-title">CHAMPION UNIQUE</div>
+        {% if most_champions_list %}
+            {% for player in most_champions_list %}
+                <div class="player-row">
+                    <div class="player-name">
+                        {{ loop.index }}. {{ player.game_name }}
+                        <div class="games-played">({{ player.total_games }} games)</div>
+                    </div>
+                    <div class="score">{{ player.unique_champions }}</div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No data</p>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>

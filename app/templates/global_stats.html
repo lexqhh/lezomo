@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiques Globales</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Statistiques Globales</h1>
+    <table>
+        <tr>
+            <th>Total Games</th>
+            <th>Total Wins</th>
+            <th>Total Losses</th>
+            <th>Global Winrate (%)</th>
+            <th>Total Time (sec)</th>
+        </tr>
+        <tr>
+            <td>{{ stats.total_games }}</td>
+            <td>{{ stats.total_wins }}</td>
+            <td>{{ stats.total_losses }}</td>
+            <td>{{ stats.global_winrate|round(2) }}</td>
+            <td>{{ stats.total_time }}</td>
+        </tr>
+    </table>
+</body>
+</html>
