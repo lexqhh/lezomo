@@ -1,0 +1,16 @@
+name: Auto Update DB
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # Exécute toutes les 10 minutes
+
+jobs:
+  update-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Render API
+        run: |
+          curl --request POST "https://api.render.com/v1/services/cv8am3an91rc73dgbfh0/jobs" \
+              --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+              --header "Content-Type: application/json" \
+              --data-raw '{"startCommand": "curl -X GET https://lezomo-011n.onrender.com/update-db"}'
