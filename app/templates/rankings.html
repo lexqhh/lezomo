@@ -7,9 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="icon" type="image/vnd.icon" href="../../static/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        
-    </style>
 </head>
 <body>
     
@@ -38,6 +35,7 @@
     </table>
 
     <h2>STATISTIQUES DES SCOOTS</h2>
+
     <!-- 3 colonnes : Most Kills / Deaths / Assists -->
     <div class="container">
         <!-- MOST KILLS -->
@@ -47,13 +45,16 @@
             </div>
             {% if most_kills_list %}
                 {% for player in most_kills_list %}
-                    <div class="player-row">
-                        <div class="player-name">
-                            {{ loop.index }}. {{ player.game_name }}
-                            <div class="games-played">({{ player.total_games }} games)</div>
+                    <a href="https://www.op.gg/summoners/euw/{{ player.game_name|replace(' ','-') }}-{{ player.tag_line|replace('#','') }}"
+                       target="_blank" class="player-row-link">
+                        <div class="player-row">
+                            <div class="player-name">
+                                {{ loop.index }}. {{ player.game_name }}
+                                <div class="games-played">({{ player.total_games }} games)</div>
+                            </div>
+                            <div class="score">{{ player.kills }}</div>
                         </div>
-                        <div class="score">{{ player.kills }}</div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <p>No data</p>
@@ -67,13 +68,16 @@
             </div>
             {% if most_deaths_list %}
                 {% for player in most_deaths_list %}
-                    <div class="player-row">
-                        <div class="player-name">
-                            {{ loop.index }}. {{ player.game_name }}
-                            <div class="games-played">({{ player.total_games }} games)</div>
+                    <a href="https://www.op.gg/summoners/euw/{{ player.game_name|replace(' ','-') }}-{{ player.tag_line|replace('#','') }}"
+                       target="_blank" class="player-row-link">
+                        <div class="player-row">
+                            <div class="player-name">
+                                {{ loop.index }}. {{ player.game_name }}
+                                <div class="games-played">({{ player.total_games }} games)</div>
+                            </div>
+                            <div class="score">{{ player.deaths }}</div>
                         </div>
-                        <div class="score">{{ player.deaths }}</div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <p>No data</p>
@@ -87,13 +91,16 @@
             </div>
             {% if most_assists_list %}
                 {% for player in most_assists_list %}
-                    <div class="player-row">
-                        <div class="player-name">
-                            {{ loop.index }}. {{ player.game_name }}
-                            <div class="games-played">({{ player.total_games }} games)</div>
+                    <a href="https://www.op.gg/summoners/euw/{{ player.game_name|replace(' ','-') }}-{{ player.tag_line|replace('#','') }}"
+                       target="_blank" class="player-row-link">
+                        <div class="player-row">
+                            <div class="player-name">
+                                {{ loop.index }}. {{ player.game_name }}
+                                <div class="games-played">({{ player.total_games }} games)</div>
+                            </div>
+                            <div class="score">{{ player.assists }}</div>
                         </div>
-                        <div class="score">{{ player.assists }}</div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <p>No data</p>
@@ -101,19 +108,22 @@
         </div>
     </div>
 
-    <!-- 3 colonnes : RANK, KDA, CHAMPIONS UNIQUE -->
+    <!-- 3 colonnes : RANK, KDA, CHAMPION UNIQUE -->
     <div class="container">
         <!-- RANK -->
         <div class="ranking-box rank-box">
             <div class="ranking-title"><i class="fa-solid fa-ranking-star"></i> RANK</div>
             {% for player in best_rank_list %}
-                <div class="player-row">
-                    <div class="player-name">
-                        {{ loop.index }}. {{ player.game_name }}
-                        <div class="games-played">({{ player.total_games }} games)</div>
+                <a href="https://www.op.gg/summoners/euw/{{ player.game_name|replace(' ','-') }}-{{ player.tag_line|replace('#','') }}"
+                   target="_blank" class="player-row-link">
+                    <div class="player-row">
+                        <div class="player-name">
+                            {{ loop.index }}. {{ player.game_name }}
+                            <div class="games-played">({{ player.total_games }} games)</div>
+                        </div>
+                        <div class="score">{{ player.tier }} {{ player.rank }}</div>
                     </div>
-                    <div class="score">{{ player.tier }} {{ player.rank }}</div>
-                </div>
+                </a>
             {% endfor %}
         </div>
 
@@ -124,14 +134,17 @@
             </div>
             {% if best_kda_list %}
                 {% for player in best_kda_list %}
-                    <div class="player-row">
-                        <div class="player-name">
-                            {{ loop.index }}. {{ player.game_name }}
-                            <div class="games-played">({{ player.total_games }} games)</div>
+                    <a href="https://www.op.gg/summoners/euw/{{ player.game_name|replace(' ','-') }}-{{ player.tag_line|replace('#','') }}"
+                       target="_blank" class="player-row-link">
+                        <div class="player-row">
+                            <div class="player-name">
+                                {{ loop.index }}. {{ player.game_name }}
+                                <div class="games-played">({{ player.total_games }} games)</div>
+                            </div>
+                            {% set ratio = ((player.kills + player.assists) / (player.deaths if player.deaths != 0 else 1)) %}
+                            <div class="score">{{ ratio|round(2) }}</div>
                         </div>
-                        {% set ratio = ((player.kills + player.assists) / (player.deaths if player.deaths != 0 else 1)) %}
-                        <div class="score">{{ ratio|round(2) }}</div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <p>No data</p>
@@ -145,13 +158,16 @@
             </div>
             {% if most_champions_list %}
                 {% for player in most_champions_list %}
-                    <div class="player-row">
-                        <div class="player-name">
-                            {{ loop.index }}. {{ player.game_name }}
-                            <div class="games-played">({{ player.total_games }} games)</div>
+                    <a href="https://www.op.gg/summoners/euw/{{ player.game_name|replace(' ','-') }}-{{ player.tag_line|replace('#','') }}"
+                       target="_blank" class="player-row-link">
+                        <div class="player-row">
+                            <div class="player-name">
+                                {{ loop.index }}. {{ player.game_name }}
+                                <div class="games-played">({{ player.total_games }} games)</div>
+                            </div>
+                            <div class="score">{{ player.unique_champions }}</div>
                         </div>
-                        <div class="score">{{ player.unique_champions }}</div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <p>No data</p>
@@ -159,7 +175,7 @@
         </div>
     </div>
 
-    <!-- 3 colonnes : BEST WINRATE / LOWEST AVG TIME / TOTAL TIME PLAYED -->
+    <!-- 3 colonnes : BEST WINRATE, LOWEST AVG TIME, TOTAL TIME PLAYED -->
     <div class="three-container">
         <!-- BEST WINRATE -->
         <div class="ranking-box">
@@ -168,14 +184,16 @@
             </div>
             {% if best_winrate_list %}
                 {% for player in best_winrate_list %}
-                    <div class="player-row">
-                        <div class="player-name">
-                            {{ loop.index }}. {{ player.game_name }}
-                            <div class="games-played">({{ player.total_games }} games)</div>
+                    <a href="https://www.op.gg/summoners/euw/{{ player.game_name|replace(' ','-') }}-{{ player.tag_line|replace('#','') }}"
+                       target="_blank" class="player-row-link">
+                        <div class="player-row">
+                            <div class="player-name">
+                                {{ loop.index }}. {{ player.game_name }}
+                                <div class="games-played">({{ player.total_games }} games)</div>
+                            </div>
+                            <div class="score">{{ player.winrate|round(1) }}%</div>
                         </div>
-                        <!-- Winrate arrondi et affiché avec % -->
-                        <div class="score">{{ player.winrate|round(1) }}%</div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <p>No data</p>
@@ -189,16 +207,19 @@
             </div>
             {% if lowest_avg_time_list %}
                 {% for player in lowest_avg_time_list %}
-                    <div class="player-row">
-                        <div class="player-name">
-                            {{ loop.index }}. {{ player.game_name }}
-                            <div class="games-played">({{ player.total_games }} games)</div>
+                    <a href="https://www.op.gg/summoners/euw/{{ player.game_name|replace(' ','-') }}-{{ player.tag_line|replace('#','') }}"
+                       target="_blank" class="player-row-link">
+                        <div class="player-row">
+                            <div class="player-name">
+                                {{ loop.index }}. {{ player.game_name }}
+                                <div class="games-played">({{ player.total_games }} games)</div>
+                            </div>
+                            {% set avg_secs = player.avg_time %}
+                            {% set mins = (avg_secs // 60)|int %}
+                            {% set secs = (avg_secs % 60)|int %}
+                            <div class="score">{{ mins }}:{{ '%02d'|format(secs) }}</div>
                         </div>
-                        {% set avg_secs = player.avg_time %}
-                        {% set mins = (avg_secs // 60)|int %}
-                        {% set secs = (avg_secs % 60)|int %}
-                        <div class="score">{{ mins }}:{{ '%02d'|format(secs) }}</div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <p>No data</p>
@@ -212,33 +233,30 @@
             </div>
             {% if best_total_time_list %}
                 {% for player in best_total_time_list %}
-                    <div class="player-row">
-                        <div class="player-name">
-                            {{ loop.index }}. {{ player.game_name }}
-                            <div class="games-played">({{ player.total_games }} games)</div>
+                    <a href="https://www.op.gg/summoners/euw/{{ player.game_name|replace(' ','-') }}-{{ player.tag_line|replace('#','') }}"
+                       target="_blank" class="player-row-link">
+                        <div class="player-row">
+                            <div class="player-name">
+                                {{ loop.index }}. {{ player.game_name }}
+                                <div class="games-played">({{ player.total_games }} games)</div>
+                            </div>
+                            <div class="score">
+                                {{ player.time_hours|round(1) }}h
+                            </div>
                         </div>
-                        <!-- time_hours arrondi, suffix h -->
-                        <div class="score">
-                            {{ player.time_hours|round(1) }}h
-                        </div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <p>No data</p>
             {% endif %}
         </div>
     </div>
-<!-- 3 colonnes WINRATE, AVG TIME, TOTAL TIME -->
-<div class="three-container">
-    <!-- ...best_winrate, lowest_avg_time, best_total_time... -->
-</div>
 
 <footer>
     <p>🏆 Lezomo © 2025 - Stats LoL entre amis très très proches 🌈</p>
     <div class="last-update">
-        Mis à jour le : j'sais pas comment le faire automatiquement
+        Mis à jour le : (TODO automatiser la date)
     </div>
-    
 </footer>
 
 </body>

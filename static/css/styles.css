@@ -1,17 +1,27 @@
+/* -------------------------
+   1. IMPORTS DE FONTS
+------------------------- */
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700&family=Roboto:wght@300;400;700&display=swap');
-        
-        body {
-            font-family: 'Roboto', sans-serif;
-            margin: 20px;
-            background: #1f1f1f;
-            color: #ddd;
-        }
-        
-        h1, h2 {
-            text-align: center;
-        }
-        
-        .wave-text span {
+
+/* -------------------------
+   2. STYLES GLOBAUX
+------------------------- */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 20px;
+    background: #1f1f1f;
+    color: #ddd;
+    animation: fadeIn 1s ease-in;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+/* -------------------------
+   3. ANIMATION "WAVE" SUR LE TEXTE
+------------------------- */
+.wave-text span {
     display: inline-block;
     font-size: 4rem;
     animation: wave 2s ease-in-out infinite;
@@ -24,18 +34,10 @@
     transition: transform 0.3s, color 0.3s;
 }
 
-.wave-text span:nth-child(1) {
-    animation-delay: 0s;
-}
-.wave-text span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-.wave-text span:nth-child(3) {
-    animation-delay: 0.4s;
-}
-.wave-text span:nth-child(4) {
-    animation-delay: 0.6s;
-}
+.wave-text span:nth-child(1) { animation-delay: 0s; }
+.wave-text span:nth-child(2) { animation-delay: 0.2s; }
+.wave-text span:nth-child(3) { animation-delay: 0.4s; }
+.wave-text span:nth-child(4) { animation-delay: 0.6s; }
 
 @keyframes wave {
     0%, 100% {
@@ -46,200 +48,212 @@
     }
 }
 
-        .container, .three-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        
-        .ranking-box {
-            background: #2a2a2a;
-            border-radius: 12px;
-            padding: 20px;
-            width: 250px;
-            text-align: center;
-            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease-in-out;
-        }
-        
-        .ranking-box:hover {
-            transform: scale(1.01);
-            box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
-        }
-        
-        .rank-box .player-name {
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            max-width: 65%; /* évite le débordement horizontal */
-        }
-        
-        .rank-box .score {
-            width: 35%;
-            text-align: right;
-            padding-left: 5px;
-        }
+/* -------------------------
+   4. TITRES ET EFFETS H2
+------------------------- */
+h2 {
+    font-family: 'Poppins', sans-serif;
+    color: #ffcc00;
+    font-size: 2em;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 30px 0 20px;
+    position: relative;
+}
 
-        .ranking-title {
-            font-size: 1.4em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #ffcc00;
-            text-transform: uppercase;
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        .player-row {
-            margin: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        .player-name {
-            text-align: left;
-            font-weight: 400;
-        }
-        
-        .score {
-            font-weight: bold;
-            color: #ffcc00;
-        }
-        
-        .games-played {
-            font-size: 0.7em;
-            color: #bbb;
-        }
-        
-        table.global-stats {
-            margin: 20px auto;
-            border-collapse: collapse;
-            width: 80%;
-            max-width: 900px;
-            overflow: hidden;
-            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
-            background-color: rgba(250, 120, 196, 0.05);
-            border-radius: 10px;
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        table.global-stats th, table.global-stats td {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            text-align: center;
-        }
-        
-        table.global-stats th {
-            background-color: #e4a1c7a1;
-            color: #ebebeb;
-            font-weight: bold;
-        }
-        
-        .kda-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
+h2::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 3px;
+    background-color: #ffffff;
+    margin: 8px auto 0;
+    border-radius: 2px;
+}
 
-        .player-row:nth-child(odd) {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .player-row:nth-child(even) {
-            background: rgba(255, 255, 255, 0.1);
-        }
+/* -------------------------
+   5. CONTENEURS ET LAYOUT
+------------------------- */
+.container, .three-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
 
-        .player-row {
-            transition: background 0.3s, transform 0.2s;
-        }
-        
-        .player-row:hover {
-            background: rgba(255, 204, 0, 0.2);
-            transform: translateX(5px);
-            cursor: pointer;
-        }
-        
-        .ranking-title {
-            word-wrap: break-word;
-            hyphens: auto;
-            line-height: 1.1em;
-            padding: 0 5px;
-            word-spacing: 2px;
-        }
+/* -------------------------
+   6. BLOCS DE CLASSEMENT
+------------------------- */
+.ranking-box {
+    background: #2a2a2a;
+    border-radius: 12px;
+    padding: 20px;
+    width: 250px;
+    text-align: center;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease-in-out;
+}
 
-        
-        @media (max-width: 600px) {
-            body {
-                margin: 10px;
-            }
-        
-            .ranking-box, table.global-stats {
-                width: 100%;
-                padding: 10px;
-                min-width: 270px;
-            }
-        
-            .player-row {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-        }        
+.ranking-box:hover {
+    transform: scale(1.01);
+    box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
+}
 
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 15px;
-            font-size: 0.9em;
-            color: #888;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
+.ranking-title {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #ffcc00;
+    text-transform: uppercase;
+    font-family: 'Poppins', sans-serif;
+    word-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.1em;
+    padding: 0 5px;
+    word-spacing: 2px;
+}
 
-        body {
-            animation: fadeIn 1s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+/* -------------------------
+   7. LIGNES DE JOUEURS
+------------------------- */
+.player-row {
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    font-family: 'Poppins', sans-serif;
+    transition: background 0.3s, transform 0.2s;
+}
 
-        .last-update {
-            font-size: 0.9em;
-            color: #888;
-            text-align: center;
-            margin-top: 30px;
-        }
+.player-name {
+    text-align: left;
+    font-weight: 400;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 65%; /* évite le débordement horizontal */
+}
 
-        h2 {
-            font-family: 'Poppins', sans-serif;
-            color: #ffcc00;
-            font-size: 2em;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 30px 0 20px;
-            position: relative;
-        }
-        
-        h2::after {
-            content: '';
-            display: block;
-            width: 80px;
-            height: 3px;
-            background-color: #ffffff;
-            margin: 8px auto 0;
-            border-radius: 2px;
-        }
-        
-        
-        
-        
-        
-        
-        
-        
+.score {
+    width: 35%;
+    text-align: right;
+    padding-left: 5px;
+    font-weight: bold;
+    color: #ffcc00;
+}
+
+.games-played {
+    font-size: 0.7em;
+    color: #bbb;
+}
+
+/* Liens cliquables sur chaque ligne de joueur */
+.player-row-link {
+    text-decoration: none; /* enlève le soulignement du lien */
+    color: inherit;       /* garde la couleur de base */
+    display: block;       /* permet de cliquer sur toute la case */
+}
+
+.player-row-link:nth-child(odd) .player-row {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.player-row-link:nth-child(even) .player-row {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.player-row-link:hover .player-row {
+    background: rgba(255, 204, 0, 0.2);
+    transform: translateX(5px);
+    cursor: pointer;
+}
+
+/* -------------------------
+   8. TABLEAU DE STATISTIQUES GLOBALES
+------------------------- */
+table.global-stats {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 80%;
+    max-width: 900px;
+    overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+    background-color: rgba(250, 120, 196, 0.05);
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+}
+
+table.global-stats th, 
+table.global-stats td {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    text-align: center;
+}
+
+table.global-stats th {
+    background-color: #e4a1c7a1;
+    color: #ebebeb;
+    font-weight: bold;
+}
+
+/* -------------------------
+   9. KDA CONTAINER
+------------------------- */
+.kda-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+/* -------------------------
+   10. FOOTER & DATE DE MISE À JOUR
+------------------------- */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 15px;
+    font-size: 0.9em;
+    color: #888;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.last-update {
+    font-size: 0.9em;
+    color: #888;
+    text-align: center;
+    margin-top: 30px;
+}
+
+/* -------------------------
+   11. ANIMATION FADE-IN
+------------------------- */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* -------------------------
+   12. MEDIA QUERIES
+------------------------- */
+@media (max-width: 600px) {
+    body {
+        margin: 10px;
+    }
+
+    .ranking-box,
+    table.global-stats {
+        width: 100%;
+        padding: 10px;
+        min-width: 270px;
+    }
+
+    .player-row {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}

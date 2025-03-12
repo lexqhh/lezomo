@@ -83,47 +83,38 @@ def format_duration(seconds):
 
 @app.route("/")
 def index():
-    """
-    Page principale :
-      - Stats globales (top)
-      - 3 classements (Kills/Deaths/Assists)
-      - BEST KDA
-      - 3 classements (Winrate, AvgTime, TotalTime) en dessous
-    """
     # 1) Stats globales
     stats_global = get_global_stats()
     stats_global["formatted_time"] = format_duration(stats_global["total_time"])
 
-    # 2) Récupérer les joueurs de la table `players`
+    # 2) Charger tous les joueurs
     df_players = get_all_players()
 
-    # Construire un DataFrame pour kills/deaths/assists (comme déjà fait)
+    # 3) Construire un DataFrame (df_all) en combinant aggregator + table players
     rows = []
     for _, rowp in df_players.iterrows():
         player_id = rowp["player_id"]
-        agg = get_player_aggregates(player_id)  # Renvoie kills, deaths, assists, avg_time, time_hours, etc.
+        agg = get_player_aggregates(player_id)  # kills, deaths, total_games, etc.
 
         rows.append({
             "player_id": player_id,
             "game_name": rowp["game_name"],
+            "tag_line": rowp["tag_line"],   # ✅ On récupère le tag_line
 
-            "rank": rowp["rank"],    
-            "tier": rowp["tier"], 
+            "rank": rowp["rank"],
+            "tier": rowp["tier"],
 
+            # Valeurs agrégées
             "kills": agg["kills"],
             "deaths": agg["deaths"],
             "assists": agg["assists"],
-
-            # Info sur parties
             "winrate": agg["winrate"],
             "total_games": agg["total_games"],
             "avg_time": agg["avg_time"],
             "time_hours": agg["time_hours"],
-
-            # Nombre de champions uniques
-            "unique_champions": agg["unique_champions"],
+            "unique_champions": agg["unique_champions"]
         })
-
+        
     df_all = pd.DataFrame(rows)
 
     # 3) KILLS / DEATHS / ASSISTS

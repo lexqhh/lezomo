@@ -252,47 +252,39 @@ def update_players():
     conn.close()
 
 def get_player_aggregates(player_id):
-    """
-    Calcule toutes les stats pour un joueur uniquement depuis `matches`.
-      - total_games       : COUNT(*)
-      - total_wins        : COUNT(*) WHERE win=1
-      - total_losses      : total_games - total_wins
-      - winrate           : (total_wins / total_games)*100
-      - kills, deaths, assists, game_time, match_count (déjà fait)
-      - avg_time, time_hours
-    """
+    """Statistiques complètes pour un joueur uniquement depuis matches."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # total_games pour ce joueur
-    cursor.execute("SELECT COUNT(*) FROM matches WHERE player_id=?",(player_id,))
+    # total_games
+    cursor.execute("SELECT COUNT(*) FROM matches WHERE player_id=?", (player_id,))
     row_games = cursor.fetchone()
     total_games = row_games[0] if row_games else 0
 
     # total_wins
-    cursor.execute("SELECT COUNT(*) FROM matches WHERE player_id=? AND win=1",(player_id,))
+    cursor.execute("SELECT COUNT(*) FROM matches WHERE player_id=? AND win=1", (player_id,))
     row_wins = cursor.fetchone()
     total_wins = row_wins[0] if row_wins else 0
 
     total_losses = total_games - total_wins
 
-    # kills, deaths, assists, game_duration, ...
+    # kills, deaths, assists, time, ...
     cursor.execute('''
         SELECT 
-            SUM(kills),
-            SUM(deaths),
-            SUM(assists),
-            SUM(game_duration),
-            COUNT(DISTINCT champion),
-            COUNT(*)
+            SUM(kills) as sum_kills,
+            SUM(deaths) as sum_deaths,
+            SUM(assists) as sum_assists,
+            SUM(game_duration) as sum_time,
+            COUNT(DISTINCT champion) as unique_champs,
+            COUNT(*) as match_count
         FROM matches
         WHERE player_id = ?
-    ''',(player_id,))
+    ''', (player_id,))
     row = cursor.fetchone()
+    conn.close()
 
     if not row or all(val is None for val in row):
-        # Aucune partie
-        data = {
+        return {
             "total_games": 0,
             "total_wins": 0,
             "total_losses": 0,
@@ -306,12 +298,10 @@ def get_player_aggregates(player_id):
             "avg_time": 0,
             "time_hours": 0
         }
-        conn.close()
-        return data
 
     sum_kills, sum_deaths, sum_assists, sum_time, uniq_champs, match_count = row
-    conn.close()
 
+    # Convertir None en 0
     sum_kills = sum_kills or 0
     sum_deaths = sum_deaths or 0
     sum_assists = sum_assists or 0
@@ -319,15 +309,16 @@ def get_player_aggregates(player_id):
     uniq_champs = uniq_champs or 0
     match_count = match_count or 0
 
+    # Calcul
     if total_games > 0:
         local_winrate = (total_wins / total_games)*100
     else:
         local_winrate = 0
 
-    avg_time = sum_time/match_count if match_count>0 else 0
-    time_hours = sum_time/3600
+    avg_time = sum_time / match_count if match_count > 0 else 0
+    time_hours = sum_time / 3600
 
-    data = {
+    return {
         "total_games": total_games,
         "total_wins": total_wins,
         "total_losses": total_losses,
@@ -341,7 +332,6 @@ def get_player_aggregates(player_id):
         "avg_time": avg_time,
         "time_hours": time_hours
     }
-    return data
 
 
 if __name__ == "__main__":
