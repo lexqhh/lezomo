@@ -16,22 +16,74 @@
         </h1>
     </div>
 
-    <!-- Stats Globales -->
-    <table class="global-stats">
-        <tr>
-            <th>Total Games</th>
-            <th>Total Wins</th>
-            <th>Total Losses</th>
-            <th>Winrate</th>
-            <th>Total Time</th>
-        </tr>
-        <tr>
-            <td>{{ stats.total_games }}</td>
-            <td>{{ stats.total_wins }}</td>
-            <td>{{ stats.total_losses }}</td>
-            <td>{{ stats.global_winrate|round(1) }}%</td>
-            <td>{{ stats.formatted_time }}</td>
-        </tr>
+
+        <h2>Classement des SCOOTS POUR VOUS</h2>
+    <table class="player-rankings main-table">
+        <thead>
+            <tr>
+                <th>Joueur</th>
+                <th>Rôle</th>
+                <th>Rank</th>
+                <th>Winrate</th>
+                <th>KDA</th>
+                <th>Plus joués</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in best_rank_list %}
+            <tr>
+                <td>
+                    <img src="https://ddragon.leagueoflegends.com/cdn/14.4.1/img/profileicon/29.png" alt="icon">
+                    <span>
+                        {% if player.game_name == "ARCHIMONSTRE" %}
+                            Axel
+                        {% elif player.game_name == "GiJudge" %}
+                            Gab
+                        {% elif player.game_name == "REDEMPTION GOD" %}
+                            Sacha
+                        {% elif player.game_name == "peur" %}
+                            Axel (Smurf)
+                        {% elif player.game_name == "WhyImVirJhin" %}
+                            Asorn
+                        {% else %}
+                            {{ player.game_name }}
+                        {% endif %}
+                    </span>
+                </td>
+                <td>
+                    <div class="role-cell">
+                        {% if player.role == "MIDDLE" %}
+                            <img src="{{ url_for('static', filename='lanes/Middle_icon.webp') }}" alt="MID">
+                        {% elif player.role == "TOP" %}
+                            <img src="{{ url_for('static', filename='lanes/Top_icon.webp') }}" alt="TOP">
+                        {% elif player.role == "JUNGLE" %}
+                            <img src="{{ url_for('static', filename='lanes/Jungle_icon.webp') }}" alt="JGL">
+                        {% elif player.role == "BOTTOM" %}
+                            <img src="{{ url_for('static', filename='lanes/Bottom_icon.webp') }}" alt="BOT">
+                        {% elif player.role == "UTILITY" %}
+                            <img src="{{ url_for('static', filename='lanes/Support_icon.webp') }}" alt="SUP">
+                        {% endif %}
+                        <span class="role-percent">({{ player.role_percentage|int }}%)</span>
+                    </div>
+                </td>                               
+                <td class="rank-cell">
+                    <img src="{{ url_for('static', filename='ranks/' + player.tier.lower() + '.webp') }}" alt="{{ player.tier }}">
+                    <span class="rank-text rank-{{ player.tier.lower() }}">
+                        {{ player.rank }} ({{ player.lp }} LP)
+                    </span>
+                </td>                
+                <td>{{ player.winrate|int }}%</td>
+                <td>{{ player.kda|round (1) }}</td>
+                <td class="champions-cell">
+                    {% for champion in player.champions %}
+                        {% if champion != "Unknown" %}
+                            <img src="https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion/{{ champion }}.png" alt="{{ champion }}">
+                        {% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 
     <h2>STATISTIQUES DES SCOOTS</h2>
@@ -251,6 +303,24 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- Stats Globales -->
+    <table class="global-stats">
+        <tr>
+            <th>Total Games</th>
+            <th>Total Wins</th>
+            <th>Total Losses</th>
+            <th>Winrate</th>
+            <th>Total Time</th>
+        </tr>
+        <tr>
+            <td>{{ stats.total_games }}</td>
+            <td>{{ stats.total_wins }}</td>
+            <td>{{ stats.total_losses }}</td>
+            <td>{{ stats.global_winrate|round(1) }}%</td>
+            <td>{{ stats.formatted_time }}</td>
+        </tr>
+    </table>
 
     <footer>
         <p>🏆 Lezomo © 2025 - Stats LoL entre amis très très proches 🌈</p>

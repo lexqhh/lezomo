@@ -5,10 +5,8 @@ import os
 import datetime
 import pytz
 
-try:
-    from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players
-except ModuleNotFoundError:
-    from data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players
+# --- ICI C'EST LE FICHIER WEBSITE - ENLEVER "app." devant data_manager pour que ça fonctionne ---
+from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players, get_player_main_role, get_top_3_champions
 
 
 app = Flask(__name__, static_folder=os.path.join(os.getcwd(), "static"))
@@ -108,23 +106,26 @@ def index():
         agg = get_player_aggregates(player_id)  # kills, deaths, total_games, etc.
 
         rows.append({
-            "player_id": player_id,
-            "game_name": rowp["game_name"],
-            "tag_line": rowp["tag_line"],   # ✅ On récupère le tag_line
+        "player_id": player_id,
+        "game_name": rowp["game_name"],
+        "tag_line": rowp["tag_line"],
+        "rank": rowp["rank"],
+        "tier": rowp["tier"],
+        "lp": rowp["league_points"],
+        "winrate": agg.get("winrate", 0),
+        "total_games": agg.get("total_games", 0),
+        "kills": agg.get("kills", 0),
+        "deaths": agg.get("deaths", 0),
+        "assists": agg.get("assists", 0),
+        "kda": (agg.get("kills", 0) + agg.get("assists", 0)) / (agg.get("deaths", 1) if agg.get("deaths", 1) != 0 else 1),
+        "role": get_player_main_role(player_id)[0],
+        "role_percentage": round(get_player_main_role(player_id)[1], 1),
+        "champions": get_top_3_champions(player_id),
+        "avg_time": agg.get("avg_time", 0),
+        "time_hours": agg.get("time_hours", 0),
+        "unique_champions": agg.get("unique_champions", 0)
+    })
 
-            "rank": rowp["rank"],
-            "tier": rowp["tier"],
-
-            # Valeurs agrégées
-            "kills": agg["kills"],
-            "deaths": agg["deaths"],
-            "assists": agg["assists"],
-            "winrate": agg["winrate"],
-            "total_games": agg["total_games"],
-            "avg_time": agg["avg_time"],
-            "time_hours": agg["time_hours"],
-            "unique_champions": agg["unique_champions"]
-        })
         
     df_all = pd.DataFrame(rows)
 

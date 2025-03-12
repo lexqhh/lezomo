@@ -15,6 +15,63 @@ ACCOUNT_REGION = "europe"
 BASE_LOL_URL = f"https://{REGION}.api.riotgames.com"
 BASE_ACCOUNT_URL = f"https://{ACCOUNT_REGION}.api.riotgames.com"
 
+def get_player_main_role(player_id):
+    """Détermine le rôle principal joué par un joueur."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # D'abord, on récupère le nombre total de parties
+    cursor.execute('''
+        SELECT COUNT(*) as total_games
+        FROM matches
+        WHERE player_id = ?
+    ''', (player_id,))
+    
+    total_games = cursor.fetchone()[0]
+
+    if total_games == 0:
+        return "UNKNOWN", 0
+
+    # Ensuite, on récupère le rôle le plus joué
+    cursor.execute('''
+        SELECT role, COUNT(*) as count
+        FROM matches
+        WHERE player_id = ?
+        GROUP BY role
+        ORDER BY count DESC
+        LIMIT 1
+    ''', (player_id,))
+    
+    row = cursor.fetchone()
+    conn.close()
+
+    if row:
+        return row[0], (row[1] / total_games) * 100  # Pourcentage basé sur le nombre total de parties
+    return "UNKNOWN", 0
+
+def get_top_3_champions(player_id):
+    """Retourne les 3 champions les plus joués."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT champion, COUNT(*) as count
+        FROM matches
+        WHERE player_id = ?
+        GROUP BY champion
+        ORDER BY count DESC
+        LIMIT 3
+    ''', (player_id,))
+    
+    champions = [row[0] for row in cursor.fetchall()]
+    conn.close()
+
+    while len(champions) < 3:
+        champions.append("Unknown")  # Remplissage si moins de 3 champions joués
+    
+    return champions
+
+
 def create_database():
     """Crée la base de données et les tables si elles n'existent pas."""
     conn = sqlite3.connect(DB_PATH)
