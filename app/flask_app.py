@@ -3,11 +3,17 @@ import sqlite3
 import pandas as pd
 import os
 import datetime
+import pytz
 
-from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players
+try:
+    from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players
+except ModuleNotFoundError:
+    from data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players
+
 
 app = Flask(__name__, static_folder=os.path.join(os.getcwd(), "static"))
 last_update = None  # Variable globale pour stocker la dernière date de mise à jour
+TZ = pytz.timezone("Europe/Paris")
 
 rank_value = {
     "CHALLENGER": 1, 
@@ -42,7 +48,7 @@ def update_db():
     update_players()  # Exécute la mise à jour
     # On stocke l'heure actuelle dans la variable globale
     global last_update
-    last_update = datetime.datetime.now()
+    last_update = datetime.datetime.now(TZ)
     return jsonify({"message": "Base de données mise à jour !"}), 200
 
 @app.route("/download-db", methods=["GET"])
