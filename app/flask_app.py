@@ -2,10 +2,12 @@ from flask import Flask, render_template, jsonify, send_file, url_for
 import sqlite3
 import pandas as pd
 import os
+import datetime
 
 from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players
 
 app = Flask(__name__, static_folder=os.path.join(os.getcwd(), "static"))
+last_update = None  # Variable globale pour stocker la dernière date de mise à jour
 
 rank_value = {
     "CHALLENGER": 1, 
@@ -38,6 +40,9 @@ def get_rank_score(player):
 @app.route("/update-db", methods=["GET"])
 def update_db():
     update_players()  # Exécute la mise à jour
+    # On stocke l'heure actuelle dans la variable globale
+    global last_update
+    last_update = datetime.datetime.now()
     return jsonify({"message": "Base de données mise à jour !"}), 200
 
 @app.route("/download-db", methods=["GET"])
@@ -142,28 +147,27 @@ def index():
     # Tri du plus petit rank_score au plus grand => le plus haut rang
     best_rank = df_all.sort_values("rank_score", ascending=True).head(6).to_dict(orient="records")
 
+    # On formate la date si elle existe
+    if last_update is not None:
+        last_update_str = last_update.strftime("%d/%m/%Y %H:%M")
+    else:
+        last_update_str = "Pas encore mise à jour"
+
 
     return render_template(
         "rankings.html",
+        last_update=last_update_str,
         stats=stats_global,
-
-        # Existing:
         most_kills_list=top_kills,
         most_deaths_list=top_deaths,
         most_assists_list=top_assists,
         best_kda_list=best_kda,
-
-        # New triple
         best_winrate_list=best_winrate,
         lowest_avg_time_list=lowest_avg_time,
         best_total_time_list=best_total_time,
-
-        # "MOST CHAMPIONS"
         most_champions_list=most_champions,
-
-        #RANKS
-        best_rank_list=best_rank,
-)
+        best_rank_list=best_rank
+    )
 
 
 if __name__ == "__main__":
