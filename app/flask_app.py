@@ -125,7 +125,8 @@ def index():
         "champions": get_top_3_champions(player_id),
         "avg_time": agg.get("avg_time", 0),
         "time_hours": agg.get("time_hours", 0),
-        "unique_champions": agg.get("unique_champions", 0)
+        "unique_champions": agg.get("unique_champions", 0),
+        "in_game": in_game
     })
 
         
