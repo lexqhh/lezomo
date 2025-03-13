@@ -6,7 +6,7 @@ import datetime
 import pytz
 
 # --- ICI C'EST LE FICHIER WEBSITE - ENLEVER "app." devant data_manager pour que ça fonctionne ---
-from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players, get_player_main_role, get_top_3_champions
+from app.data_manager import DB_PATH, get_player_aggregates, get_global_stats, update_players, get_player_main_role, get_top_3_champions, is_player_in_game
 
 
 app = Flask(__name__, static_folder=os.path.join(os.getcwd(), "static"))
@@ -104,6 +104,8 @@ def index():
     for _, rowp in df_players.iterrows():
         player_id = rowp["player_id"]
         agg = get_player_aggregates(player_id)  # kills, deaths, total_games, etc.
+        simulate_mode = False  # Changez cette variable pour tester
+        in_game = is_player_in_game(rowp["summoner_id"], simulate_mode)
 
         rows.append({
         "player_id": player_id,

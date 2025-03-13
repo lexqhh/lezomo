@@ -448,7 +448,31 @@ table.player-rankings th:first-child {
     padding-left: 15px !important; /* réaligne précisément le titre "Joueur" avec les joueurs */
 }
 
+/* Définition de l'animation 'pulse' qui fait varier l'opacité */
+@keyframes pulse {
+    0% { opacity: 1; }    /* Commence avec une opacité totale */
+    50% { opacity: 0.2; } /* À mi-chemin, réduit l'opacité à 50% */
+    100% { opacity: 1; }  /* Retourne à une opacité totale */
+}
 
+.in-game-indicator {
+    background-color: rgb(185, 37, 37);  /* Fond rouge foncé */
+    color: #dddddd;                      /* Texte gris clair */
+    border-radius: 5px;                 /* Coins arrondis pour un effet capsule */
+    padding: 2px 5px;                    /* Espacement interne: 2px haut/bas, 6px gauche/droite */
+    font-size: 0.75em;                    /* Taille de police légèrement réduite */
+    margin-left: 10px;                    /* Marge à gauche pour séparer du texte précédent */
+    animation: pulse 2s ease-in-out infinite;  /* Animation: nom, durée, timing, répétition infinie */
+}
+
+.player-info {
+    display: flex;
+    align-items: center;
+}
+
+.player-info img {
+    margin-right: 5px;
+}
 
 /* Couleurs des rangs */
 .rank-unranked { color: #f8f8f8; }

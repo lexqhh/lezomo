@@ -15,6 +15,18 @@ ACCOUNT_REGION = "europe"
 BASE_LOL_URL = f"https://{REGION}.api.riotgames.com"
 BASE_ACCOUNT_URL = f"https://{ACCOUNT_REGION}.api.riotgames.com"
 
+def is_player_in_game(encrypted_puuid, simulate=False):
+    """
+    Laisser sur False ici
+    Uniquement changer dans flask_app.py - simulate_mode = False  # True = Simulation, False = API
+    """
+    if simulate:
+        return True
+    url = f"{BASE_LOL_URL}/lol/spectator/v5/active-games/by-summoner/{encrypted_puuid}"
+    headers = {"X-Riot-Token": API_KEY}
+    response = requests.get(url, headers=headers)
+    return response.status_code == 200
+
 def get_player_main_role(player_id):
     """Détermine le rôle principal joué par un joueur."""
     conn = sqlite3.connect(DB_PATH)
