@@ -33,23 +33,28 @@
             {% for player in best_rank_list %}
             <tr>
                 <td>
-                    <img src="https://ddragon.leagueoflegends.com/cdn/14.4.1/img/profileicon/29.png" alt="icon">
-                    <span>
-                        {% if player.game_name == "ARCHIMONSTRE" %}
-                            Axel
-                        {% elif player.game_name == "GiJudge" %}
-                            Gab
-                        {% elif player.game_name == "REDEMPTION GOD" %}
-                            Sacha
-                        {% elif player.game_name == "peur" %}
-                            Axel (Smurf)
-                        {% elif player.game_name == "WhyImVirJhin" %}
-                            Asorn
-                        {% else %}
-                            {{ player.game_name }}
+                    <div class="player-info">
+                        <img src="https://ddragon.leagueoflegends.com/cdn/14.4.1/img/profileicon/29.png" alt="icon">
+                        <span>
+                            {% if player.game_name == "ARCHIMONSTRE" %}
+                                Axel
+                            {% elif player.game_name == "GiJudge" %}
+                                Gab
+                            {% elif player.game_name == "REDEMPTION GOD" %}
+                                Sacha
+                            {% elif player.game_name == "peur" %}
+                                Axel (Smurf)
+                            {% elif player.game_name == "WhyImVirJhin" %}
+                                Asorn
+                            {% else %}
+                                {{ player.game_name }}
+                            {% endif %}
+                        </span>
+                        {% if player.in_game %}
+                            <span class="in-game-indicator">IN GAME</span>
                         {% endif %}
-                    </span>
-                </td>
+                    </div>
+                </td>                           
                 <td>
                     <div class="role-cell">
                         {% if player.role == "MIDDLE" %}
