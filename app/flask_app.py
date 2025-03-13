@@ -105,7 +105,7 @@ def index():
         player_id = rowp["player_id"]
         agg = get_player_aggregates(player_id)  # kills, deaths, total_games, etc.
         simulate_mode = False  # Changez cette variable pour tester
-        in_game = is_player_in_game(rowp["summoner_id"], simulate_mode)
+        in_game = is_player_in_game(rowp["puuid"], simulate_mode)
 
         rows.append({
         "player_id": player_id,
