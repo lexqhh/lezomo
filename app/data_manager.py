@@ -6,6 +6,8 @@ from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, F
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.pool import NullPool
 
+Base = declarative_base()
+
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 
