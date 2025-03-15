@@ -10,6 +10,9 @@ from dotenv import load_dotenv
 # Charger les variables du fichier .env
 load_dotenv()
 
+print("Current working directory:", os.getcwd())
+
+
 # --- ICI C'EST LE FICHIER WEBSITE - AJOUTER "app." devant data_manager pour que ça fonctionne ---
 from app.data_manager import engine, SessionLocal, Base, Player, Match, get_global_stats, update_players, get_player_main_role, get_top_3_champions, is_player_in_game
 

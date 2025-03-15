@@ -21,15 +21,8 @@ DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?
 
 # Créer l'engine SQLAlchemy
 engine = create_engine(DATABASE_URL, poolclass=NullPool)
-# Si vous utilisez le Transaction Pooler ou le Session Pooler, vous pouvez désactiver le pooling client SQLAlchemy :
-# engine = create_engine(DATABASE_URL, poolclass=NullPool)
-
-# Tester la connexion
-try:
-    with engine.connect() as connection:
-        print("Connection successful!")
-except Exception as e:
-    print(f"Failed to connect: {e}")
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
 class Player(Base):
     __tablename__ = 'players'
