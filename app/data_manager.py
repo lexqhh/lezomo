@@ -5,16 +5,9 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey, func
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Lire les variables depuis .env
-DB_USER = os.getenv("user")
-DB_PASSWORD = os.getenv("password")
-DB_HOST = os.getenv("host")
-DB_PORT = os.getenv("port", "5432")  # Valeur par défaut 5432
-DB_NAME = os.getenv("dbname")
+load_dotenv()  # Charge le fichier .env
 
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-# Créer le moteur SQLAlchemy et la session
+DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -47,12 +40,6 @@ class Match(Base):
     game_duration = Column(Integer)
     win = Column(Boolean)
 
-# Créer le moteur et la session SQLAlchemy
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-load_dotenv()
 API_KEY = os.getenv("RIOT_API_KEY")
 
 DB_PATH = "data/lol_data.db"
