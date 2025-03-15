@@ -1,8 +1,56 @@
-import sqlite3
 import requests
 import os
 import pandas as pd
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey, func
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+# Lire les variables depuis .env
+DB_USER = os.getenv("user")
+DB_PASSWORD = os.getenv("password")
+DB_HOST = os.getenv("host")
+DB_PORT = os.getenv("port")
+DB_NAME = os.getenv("dbname")
+
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+# Créer le moteur SQLAlchemy et la session
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+class Player(Base):
+    __tablename__ = 'players'
+    player_id = Column(String, primary_key=True, index=True)
+    game_name = Column(String)
+    tag_line = Column(String)
+    puuid = Column(String)
+    summoner_id = Column(String)
+    summoner_level = Column(Integer)
+    rank = Column(String)
+    tier = Column(String)
+    league_points = Column(Integer)
+    wins = Column(Integer)
+    losses = Column(Integer)
+    winrate = Column(Float)
+    total_ranked_games = Column(Integer)
+
+class Match(Base):
+    __tablename__ = 'matches'
+    match_id = Column(String, primary_key=True)
+    player_id = Column(String, ForeignKey('players.player_id'), primary_key=True)
+    champion = Column(String)
+    role = Column(String)
+    kills = Column(Integer)
+    deaths = Column(Integer)
+    assists = Column(Integer)
+    game_duration = Column(Integer)
+    win = Column(Boolean)
+
+# Créer le moteur et la session SQLAlchemy
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
 load_dotenv()
 API_KEY = os.getenv("RIOT_API_KEY")
@@ -27,22 +75,34 @@ def is_player_in_game(encrypted_puuid, simulate=False):
     response = requests.get(url, headers=headers)
     return response.status_code == 200
 
+from sqlalchemy import func
+from data_manager import SessionLocal, Match  # Assurez-vous que Match est importé
+
 def get_player_main_role(player_id):
-    """Détermine le rôle principal joué par un joueur."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    """Détermine le rôle principal joué par un joueur en utilisant SQLAlchemy."""
+    session = SessionLocal()
+    try:
+        # Récupérer le nombre total de parties pour le joueur
+        total_games = session.query(func.count(Match.match_id)).filter(Match.player_id == player_id).scalar()
+        
+        if not total_games or total_games == 0:
+            return "UNKNOWN", 0
 
-    # D'abord, on récupère le nombre total de parties
-    cursor.execute('''
-        SELECT COUNT(*) as total_games
-        FROM matches
-        WHERE player_id = ?
-    ''', (player_id,))
-    
-    total_games = cursor.fetchone()[0]
-
-    if total_games == 0:
-        return "UNKNOWN", 0
+        # Récupérer le rôle le plus joué par le joueur
+        result = session.query(Match.role, func.count(Match.role).label("role_count")) \
+                        .filter(Match.player_id == player_id) \
+                        .group_by(Match.role) \
+                        .order_by(func.count(Match.role).desc()) \
+                        .first()
+                        
+        if result:
+            main_role, count = result
+            percentage = (count / total_games) * 100
+            return main_role, percentage
+        else:
+            return "UNKNOWN", 0
+    finally:
+        session.close()
 
     # Ensuite, on récupère le rôle le plus joué
     cursor.execute('''
@@ -62,69 +122,35 @@ def get_player_main_role(player_id):
     return "UNKNOWN", 0
 
 def get_top_3_champions(player_id):
-    """Retourne les 3 champions les plus joués."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    """Retourne les 3 champions les plus joués en utilisant SQLAlchemy."""
+    session = SessionLocal()
+    try:
+        results = session.query(
+            Match.champion,
+            func.count(Match.champion).label("count")
+        ).filter(
+            Match.player_id == player_id
+        ).group_by(
+            Match.champion
+        ).order_by(
+            func.count(Match.champion).desc()
+        ).limit(3).all()
+        
+        champions = [row.champion for row in results]
+    finally:
+        session.close()
 
-    cursor.execute('''
-        SELECT champion, COUNT(*) as count
-        FROM matches
-        WHERE player_id = ?
-        GROUP BY champion
-        ORDER BY count DESC
-        LIMIT 3
-    ''', (player_id,))
-    
-    champions = [row[0] for row in cursor.fetchall()]
-    conn.close()
-
+    # Si moins de 3 champions, on complète avec "Unknown"
     while len(champions) < 3:
-        champions.append("Unknown")  # Remplissage si moins de 3 champions joués
+        champions.append("Unknown")
     
     return champions
 
 
 def create_database():
-    """Crée la base de données et les tables si elles n'existent pas."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    # Crée les tables dans PostgreSQL si elles n'existent pas déjà
+    Base.metadata.create_all(bind=engine)
 
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS players (
-            player_id TEXT PRIMARY KEY,
-            game_name TEXT,
-            tag_line TEXT,
-            puuid TEXT,
-            summoner_id TEXT,
-            summoner_level INTEGER,
-            rank TEXT,
-            tier TEXT,
-            league_points INTEGER,
-            wins INTEGER,
-            losses INTEGER,
-            winrate REAL,
-            total_ranked_games INTEGER
-        )
-    ''')
-
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS matches (
-            match_id TEXT,
-            player_id TEXT,
-            champion TEXT,
-            role TEXT,
-            kills INTEGER,
-            deaths INTEGER,
-            assists INTEGER,
-            game_duration INTEGER,
-            win BOOLEAN,
-            PRIMARY KEY (match_id, player_id),
-            FOREIGN KEY (player_id) REFERENCES players(player_id)
-        )
-    ''')
-
-    conn.commit()
-    conn.close()
 
 def get_puuid(game_name, tag_line):
     """Récupère le PUUID d'un joueur via son Riot ID."""
@@ -159,10 +185,7 @@ def get_ranked_stats(summoner_id):
         print(f"❌ Erreur API Ranked : {response.status_code}")
         return None
 
-def update_recent_matches(puuid, player_id, conn, cursor):
-    """Récupère les dernières parties d'un joueur et stocke uniquement les joueurs de players.txt."""
-    
-    # Lire les joueurs autorisés depuis players.txt
+def update_recent_matches(puuid, player_id, session):
     with open(PLAYERS_FILE, "r") as file:
         allowed_players = {line.strip().split("#")[0] + "#" + line.strip().split("#")[1] for line in file.readlines()}
 
@@ -183,70 +206,39 @@ def update_recent_matches(puuid, player_id, conn, cursor):
             continue
 
         match_data = match_response.json()
-
-        # Vérifie que c'est bien un match classé solo (queueId=420)
         if match_data['info']['queueId'] != 420:
             continue
 
-        # Insérer uniquement les joueurs présents dans players.txt
         for participant in match_data['info']['participants']:
             match_player_id = f"{participant['riotIdGameName']}#{participant['riotIdTagline']}"
-
-            if match_player_id in allowed_players:  # ✅ Vérifie si le joueur est autorisé
-                cursor.execute('''
-                    INSERT INTO matches (match_id, player_id, champion, role, kills, deaths, assists, game_duration, win)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(match_id, player_id) DO NOTHING
-                ''', (
-                    match_id,
-                    match_player_id,
-                    participant['championName'],
-                    participant['teamPosition'],
-                    participant['kills'],
-                    participant['deaths'],
-                    participant['assists'],
-                    match_data['info']['gameDuration'],
-                    participant['win']
-                ))
+            if match_player_id in allowed_players:
+                # Vérifier si le match existe déjà
+                exist = session.query(Match).filter_by(match_id=match_id, player_id=match_player_id).first()
+                if exist:
+                    continue  # Passer si déjà présent
+                new_match = Match(
+                    match_id=match_id,
+                    player_id=match_player_id,
+                    champion=participant['championName'],
+                    role=participant['teamPosition'],
+                    kills=participant['kills'],
+                    deaths=participant['deaths'],
+                    assists=participant['assists'],
+                    game_duration=match_data['info']['gameDuration'],
+                    win=participant['win']
+                )
+                session.add(new_match)
 
 
 
 def get_global_stats():
-    """
-    Calcule les stats globales (toutes les parties de la table `matches`):
-      - total_games : nombre de parties totales
-      - total_wins  : nombre de parties gagnées
-      - total_losses: total_games - total_wins
-      - global_winrate: (total_wins / total_games)*100
-      - total_time: somme des durations
-    """
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    # 1) total_games = COUNT(*)
-    cursor.execute("SELECT COUNT(*) FROM matches")
-    row = cursor.fetchone()
-    total_games = row[0] if row and row[0] else 0
-
-    # 2) total_wins = nombre de parties où `win`=1
-    cursor.execute("SELECT COUNT(*) FROM matches WHERE win=1")
-    row2 = cursor.fetchone()
-    total_wins = row2[0] if row2 and row2[0] else 0
-
+    session = SessionLocal()
+    total_games = session.query(Match).count()
+    total_wins = session.query(Match).filter(Match.win == True).count()
     total_losses = total_games - total_wins
-
-    # 3) total_time = SUM(game_duration)
-    cursor.execute("SELECT SUM(game_duration) FROM matches")
-    row3 = cursor.fetchone()
-    total_time = row3[0] if row3 and row3[0] else 0
-
-    conn.close()
-
-    if total_games > 0:
-        global_winrate = (total_wins / total_games) * 100
-    else:
-        global_winrate = 0
-
+    total_time = session.query(func.sum(Match.game_duration)).scalar() or 0
+    session.close()
+    global_winrate = (total_wins / total_games)*100 if total_games > 0 else 0
     return {
         "total_games": total_games,
         "total_wins": total_wins,
@@ -256,18 +248,15 @@ def get_global_stats():
     }
 
 def update_players():
-    """Récupère les infos des joueurs et met à jour la base de données (table players + matches)."""
-    create_database()
+    create_database()  # Assurez-vous que les tables PostgreSQL existent
 
     with open(PLAYERS_FILE, "r") as file:
-        players = [line.strip().split("#") for line in file.readlines()]
+        players_list = [line.strip().split("#") for line in file.readlines()]
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    session = SessionLocal()
 
-    for game_name, tag_line in players:
+    for game_name, tag_line in players_list:
         print(f"🔍 Récupération des infos de {game_name}#{tag_line}...")
-
         puuid = get_puuid(game_name, tag_line)
         if not puuid:
             continue
@@ -279,80 +268,55 @@ def update_players():
         ranked_stats = get_ranked_stats(summoner_info["id"])
         if not ranked_stats:
             ranked_stats = {"tier": "Unranked", "rank": "", "leaguePoints": 0, "wins": 0, "losses": 0}
-
-        winrate = (ranked_stats["wins"] / (ranked_stats["wins"] + ranked_stats["losses"]) * 100) if ranked_stats["losses"] > 0 else 0
+        
         total_games = ranked_stats["wins"] + ranked_stats["losses"]
+        winrate = (ranked_stats["wins"] / total_games * 100) if total_games > 0 else 0
 
-        # Insertion/Update dans table players
-        cursor.execute('''
-            INSERT INTO players (player_id, game_name, tag_line, puuid, summoner_id, summoner_level, rank, tier, league_points, wins, losses, winrate, total_ranked_games)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(player_id) DO UPDATE SET
-            summoner_level=excluded.summoner_level,
-            rank=excluded.rank,
-            tier=excluded.tier,
-            league_points=excluded.league_points,
-            wins=excluded.wins,
-            losses=excluded.losses,
-            winrate=excluded.winrate,
-            total_ranked_games=excluded.total_ranked_games
-        ''', (
-            f"{game_name}#{tag_line}",
-            game_name,
-            tag_line,
-            puuid,
-            summoner_info["id"],
-            summoner_info["summonerLevel"],
-            ranked_stats["rank"],
-            ranked_stats["tier"],
-            ranked_stats["leaguePoints"],
-            ranked_stats["wins"],
-            ranked_stats["losses"],
-            winrate,
-            total_games
-        ))
+        # Créer ou mettre à jour le joueur
+        player_obj = session.query(Player).filter_by(player_id=f"{game_name}#{tag_line}").first()
+        if not player_obj:
+            player_obj = Player(player_id=f"{game_name}#{tag_line}")
+        player_obj.game_name = game_name
+        player_obj.tag_line = tag_line
+        player_obj.puuid = puuid
+        player_obj.summoner_id = summoner_info["id"]
+        player_obj.summoner_level = summoner_info["summonerLevel"]
+        player_obj.rank = ranked_stats["rank"]
+        player_obj.tier = ranked_stats["tier"]
+        player_obj.league_points = ranked_stats["leaguePoints"]
+        player_obj.wins = ranked_stats["wins"]
+        player_obj.losses = ranked_stats["losses"]
+        player_obj.winrate = winrate
+        player_obj.total_ranked_games = total_games
 
-        # On insère également les dernières parties du joueur
-        update_recent_matches(puuid, f"{game_name}#{tag_line}", conn, cursor)
+        session.merge(player_obj)  # merge effectue l'insert ou update
+
+        # Insérer les matchs récents
+        update_recent_matches(puuid, f"{game_name}#{tag_line}", session)
 
         print(f"✅ {game_name}#{tag_line} mis à jour avec succès.")
 
-    conn.commit()
-    conn.close()
+    session.commit()
+    session.close()
 
 def get_player_aggregates(player_id):
-    """Statistiques complètes pour un joueur uniquement depuis matches."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    # total_games
-    cursor.execute("SELECT COUNT(*) FROM matches WHERE player_id=?", (player_id,))
-    row_games = cursor.fetchone()
-    total_games = row_games[0] if row_games else 0
-
-    # total_wins
-    cursor.execute("SELECT COUNT(*) FROM matches WHERE player_id=? AND win=1", (player_id,))
-    row_wins = cursor.fetchone()
-    total_wins = row_wins[0] if row_wins else 0
-
+    session = SessionLocal()
+    total_games = session.query(Match).filter(Match.player_id == player_id).count()
+    total_wins = session.query(Match).filter(Match.player_id == player_id, Match.win == True).count()
     total_losses = total_games - total_wins
 
-    # kills, deaths, assists, time, ...
-    cursor.execute('''
-        SELECT 
-            SUM(kills) as sum_kills,
-            SUM(deaths) as sum_deaths,
-            SUM(assists) as sum_assists,
-            SUM(game_duration) as sum_time,
-            COUNT(DISTINCT champion) as unique_champs,
-            COUNT(*) as match_count
-        FROM matches
-        WHERE player_id = ?
-    ''', (player_id,))
-    row = cursor.fetchone()
-    conn.close()
+    # Calculer les agrégats
+    aggregates = session.query(
+        func.sum(Match.kills),
+        func.sum(Match.deaths),
+        func.sum(Match.assists),
+        func.sum(Match.game_duration),
+        func.count(func.distinct(Match.champion)),
+        func.count(Match.match_id)
+    ).filter(Match.player_id == player_id).one()
+    session.close()
 
-    if not row or all(val is None for val in row):
+    if not aggregates or all(val is None for val in aggregates):
         return {
             "total_games": 0,
             "total_wins": 0,
@@ -368,22 +332,8 @@ def get_player_aggregates(player_id):
             "time_hours": 0
         }
 
-    sum_kills, sum_deaths, sum_assists, sum_time, uniq_champs, match_count = row
-
-    # Convertir None en 0
-    sum_kills = sum_kills or 0
-    sum_deaths = sum_deaths or 0
-    sum_assists = sum_assists or 0
-    sum_time = sum_time or 0
-    uniq_champs = uniq_champs or 0
-    match_count = match_count or 0
-
-    # Calcul
-    if total_games > 0:
-        local_winrate = (total_wins / total_games)*100
-    else:
-        local_winrate = 0
-
+    sum_kills, sum_deaths, sum_assists, sum_time, uniq_champs, match_count = aggregates
+    local_winrate = (total_wins / total_games)*100 if total_games > 0 else 0
     avg_time = sum_time / match_count if match_count > 0 else 0
     time_hours = sum_time / 3600
 
@@ -392,12 +342,12 @@ def get_player_aggregates(player_id):
         "total_wins": total_wins,
         "total_losses": total_losses,
         "winrate": local_winrate,
-        "kills": sum_kills,
-        "deaths": sum_deaths,
-        "assists": sum_assists,
-        "game_time": sum_time,
-        "unique_champions": uniq_champs,
-        "match_count": match_count,
+        "kills": sum_kills or 0,
+        "deaths": sum_deaths or 0,
+        "assists": sum_assists or 0,
+        "game_time": sum_time or 0,
+        "unique_champions": uniq_champs or 0,
+        "match_count": match_count or 0,
         "avg_time": avg_time,
         "time_hours": time_hours
     }
@@ -405,3 +355,9 @@ def get_player_aggregates(player_id):
 
 if __name__ == "__main__":
     update_players()
+
+
+__all__ = ["engine", "SessionLocal", "Base", "Player", "Match", 
+           "is_player_in_game", "get_player_main_role", "get_top_3_champions", 
+           "create_database", "get_puuid", "get_summoner_info", "get_ranked_stats", 
+           "update_recent_matches", "get_global_stats", "update_players", "get_player_aggregates"]
