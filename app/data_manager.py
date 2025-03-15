@@ -4,25 +4,32 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey, func
 from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.pool import NullPool
 
 # Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 
-# Récupérer les valeurs depuis le .env
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT", "5432")
-DB_NAME = os.getenv("DB_NAME")
+# Récupérer les variables
+USER = os.getenv("user")
+PASSWORD = os.getenv("password")
+HOST = os.getenv("host")
+PORT = os.getenv("port")
+DBNAME = os.getenv("dbname")
 
+# Construire la chaîne de connexion SQLAlchemy avec sslmode=require
+DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
 
-# Composer l'URL de connexion
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Créer l'engine SQLAlchemy
+engine = create_engine(DATABASE_URL, poolclass=NullPool)
+# Si vous utilisez le Transaction Pooler ou le Session Pooler, vous pouvez désactiver le pooling client SQLAlchemy :
+# engine = create_engine(DATABASE_URL, poolclass=NullPool)
 
-# Créer le moteur et la session SQLAlchemy
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+# Tester la connexion
+try:
+    with engine.connect() as connection:
+        print("Connection successful!")
+except Exception as e:
+    print(f"Failed to connect: {e}")
 
 class Player(Base):
     __tablename__ = 'players'
