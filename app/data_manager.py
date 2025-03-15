@@ -213,6 +213,7 @@ def update_recent_matches(puuid, player_id, session):
                 # Vérifier si le match existe déjà
                 exist = session.query(Match).filter_by(match_id=match_id, player_id=match_player_id).first()
                 if exist:
+                    print(f"⚠️ Match {match_id} déjà enregistré pour {match_player_id}, on saute l'insertion.")
                     continue  # Passer si déjà présent
                 new_match = Match(
                     match_id=match_id,
