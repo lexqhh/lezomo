@@ -4,6 +4,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey, func
 from sqlalchemy.orm import sessionmaker, declarative_base
+from data_manager import SessionLocal, Match
 
 # Lire les variables depuis .env
 DB_USER = os.getenv("user")
