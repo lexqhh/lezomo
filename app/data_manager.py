@@ -4,7 +4,6 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey, func
 from sqlalchemy.orm import sessionmaker, declarative_base
-from data_manager import SessionLocal, Match
 
 # Lire les variables depuis .env
 DB_USER = os.getenv("user")
@@ -75,9 +74,6 @@ def is_player_in_game(encrypted_puuid, simulate=False):
     headers = {"X-Riot-Token": API_KEY}
     response = requests.get(url, headers=headers)
     return response.status_code == 200
-
-from sqlalchemy import func
-from data_manager import SessionLocal, Match  # Assurez-vous que Match est importé
 
 def get_player_main_role(player_id):
     """Détermine le rôle principal joué par un joueur en utilisant SQLAlchemy."""
