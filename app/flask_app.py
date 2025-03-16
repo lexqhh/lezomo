@@ -58,7 +58,20 @@ def update_db():
         print(f"❌ Erreur dans /update-db : {e}")
         return jsonify({"error": "Erreur lors de la mise à jour de la base.", "last_update": last_update.strftime("%d/%m/%Y %H:%M")}), 500
 
-    return redirect(url_for("index"))  # ✅ Redirige vers la page principale après mise à jour
+    return """
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Mise à jour terminée</title>
+        </head>
+        <body>
+            <h2>✅ Mise à jour terminée !</h2>
+            <p>Dernière mise à jour : {last_update}</p>
+            <a href="/" style="font-size: 18px; color: blue; text-decoration: underline;">Retourner à l'accueil</a>
+        </body>
+    </html>
+    """.format(last_update=last_update.strftime("%d/%m/%Y %H:%M"))
+
 
 @app.route("/download-db", methods=["GET"])
 def download_db():
