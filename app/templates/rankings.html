@@ -334,5 +334,22 @@
         </div>
     </footer>
 
+    <script>
+        async function updateLastUpdate() {
+            try {
+                let response = await fetch("/update-db");
+                let data = await response.json();
+                if (data.last_update) {
+                    document.querySelector(".last-update").innerHTML = "Mis à jour le : " + data.last_update;
+                }
+            } catch (error) {
+                console.log("❌ Erreur lors de la récupération de la dernière mise à jour", error);
+            }
+        }
+    
+        setInterval(updateLastUpdate, 5000); // Met à jour toutes les 5 secondes
+    </script>
+    
+
 </body>
 </html>
