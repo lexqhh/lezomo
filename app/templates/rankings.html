@@ -337,18 +337,19 @@
     <script>
         async function updateLastUpdate() {
             try {
-                let response = await fetch("/update-db");
+                let response = await fetch("/get-last-update");
                 let data = await response.json();
                 if (data.last_update) {
                     document.querySelector(".last-update").innerHTML = "Mis à jour le : " + data.last_update;
                 }
             } catch (error) {
-                console.log("❌ Erreur lors de la récupération de la dernière mise à jour", error);
+                console.log("❌ Erreur récupération `last_update`", error);
             }
         }
     
-        setInterval(updateLastUpdate, 5000); // Met à jour toutes les 5 secondes
+        setInterval(updateLastUpdate, 5000); // ✅ Récupère uniquement `last_update`, sans surcharger l’API
     </script>
+    
     
 
 </body>

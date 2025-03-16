@@ -67,6 +67,12 @@ def download_db():
     db_path = os.path.join(base_dir, "..", "data", "lol_data.db")
     return send_file(db_path, as_attachment=True, download_name="lol_data.db")
 
+@app.route("/get-last-update", methods=["GET"])
+def get_last_update():
+    global last_update
+    return jsonify({"last_update": last_update.strftime("%d/%m/%Y %H:%M") if last_update else "Aucune mise à jour"}), 200
+
+
 @app.route("/download-db-backup", methods=["GET"])
 def download_db_backup():
     """

@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey, func
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.pool import NullPool
+from sqlalchemy.sql import exists
 
 Base = declarative_base()
 
