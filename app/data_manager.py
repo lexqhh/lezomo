@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, F
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import exists
+from sqlalchemy.exc import IntegrityError
 
 Base = declarative_base()
 
@@ -211,10 +212,10 @@ def update_recent_matches(puuid, player_id, session):
         for participant in match_data['info']['participants']:
             match_player_id = f"{participant['riotIdGameName']}#{participant['riotIdTagline']}"
             if match_player_id in allowed_players:
-                # Vérifier si le match existe déjà
+                # Vérifier si le match existe déjà avant d'insérer
                 if session.query(Match).filter_by(match_id=match_id, player_id=match_player_id).first():
-                        print(f"⚠️ Match {match_id} déjà enregistré pour {match_player_id}, on saute l'insertion.")
-                        continue  # ✅ Empêche l'erreur `UniqueViolation`
+                    print(f"⚠️ Match {match_id} déjà enregistré pour {match_player_id}, on saute l'insertion.")
+                    continue  # ✅ Empêche l'erreur `UniqueViolation`
 
                 new_match = Match(
                     match_id=match_id,
@@ -227,7 +228,13 @@ def update_recent_matches(puuid, player_id, session):
                     game_duration=match_data['info']['gameDuration'],
                     win=participant['win']
                 )
-                session.add(new_match)
+
+                try:
+                    session.add(new_match)
+                    session.commit()
+                except IntegrityError:
+                    session.rollback()  # Annule l'insertion si une erreur survient
+                    print(f"⚠️ Conflit d'insertion : Match {match_id} pour {match_player_id} existe déjà.")
 
 
 

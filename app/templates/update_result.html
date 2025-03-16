@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mise à jour</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% if error %}
+            <h2>⚠️ Erreur lors de la mise à jour</h2>
+            <p>Un problème est survenu. Vérifiez les logs pour plus d'infos.</p>
+        {% else %}
+            <h2>✅ Mise à jour réussie !</h2>
+            <p>Dernière mise à jour : {{ last_update }}</p>
+        {% endif %}
+        <a href="{{ url_for('index') }}" class="btn">Retour à l'accueil</a>
+    </div>
+</body>
+</html>
