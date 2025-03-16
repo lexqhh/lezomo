@@ -212,13 +212,10 @@ def update_recent_matches(puuid, player_id, session):
             match_player_id = f"{participant['riotIdGameName']}#{participant['riotIdTagline']}"
             if match_player_id in allowed_players:
                 # Vérifier si le match existe déjà
-                match_exists = session.query(exists().where(
-                    (Match.match_id == match_id) & (Match.player_id == match_player_id)
-                )).scalar()
+                if session.query(Match).filter_by(match_id=match_id, player_id=match_player_id).first():
+                        print(f"⚠️ Match {match_id} déjà enregistré pour {match_player_id}, on saute l'insertion.")
+                        continue  # ✅ Empêche l'erreur `UniqueViolation`
 
-                if match_exists:
-                    print(f"⚠️ Match {match_id} déjà enregistré pour {match_player_id}, on saute l'insertion.")
-                    continue  # ✅ Empêche l'erreur `UniqueViolation`
                 new_match = Match(
                     match_id=match_id,
                     player_id=match_player_id,

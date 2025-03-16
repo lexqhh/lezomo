@@ -48,17 +48,17 @@ from flask import redirect, url_for
 @app.route("/update-db", methods=["GET"])
 def update_db():
     global last_update
-    last_update = datetime.datetime.now(TZ)  # ✅ Mise à jour du timer AVANT tout
-    print(f"🕒 Timer mis à jour AVANT la requête API : {last_update}")
+    last_update = datetime.datetime.now(TZ)  # ✅ Mise à jour AVANT l'appel API
+    print(f"🕒 Timer mis à jour immédiatement : {last_update}")
 
     try:
-        update_players()  # Met à jour les joueurs
+        update_players()  # ✅ Mise à jour des joueurs
         print(f"✅ Base de données mise à jour avec succès à {last_update}")
-        return jsonify({"message": "Base de données mise à jour !", "last_update": last_update.strftime("%d/%m/%Y %H:%M")}), 200
     except Exception as e:
         print(f"❌ Erreur dans /update-db : {e}")
-        return jsonify({"error": "Erreur lors de la mise à jour de la base.", "last_update": last_update.strftime("%d/%m/%Y %H:%M")}), 500  # ✅ Retourne `last_update` même en cas d'erreur
+        return jsonify({"error": "Erreur lors de la mise à jour de la base.", "last_update": last_update.strftime("%d/%m/%Y %H:%M")}), 500
 
+    return redirect(url_for("index"))  # ✅ Redirige vers la page principale après mise à jour
 
 @app.route("/download-db", methods=["GET"])
 def download_db():
