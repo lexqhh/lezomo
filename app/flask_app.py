@@ -127,27 +127,41 @@ def format_duration(seconds):
 
 @app.route("/")
 def index():
-    # 1) Récupérer les stats globales
+    session = SessionLocal()
+    
+    # 1️⃣ Récupérer les stats globales
     stats_global = get_global_stats()
     stats_global["formatted_time"] = format_duration(stats_global["total_time"])
 
-    # 2) Charger tous les joueurs depuis PostgreSQL
+    # 2️⃣ Calculer le % de premier dragon pris en ignorant les NULL
+    total_matches_dragon = session.query(Match).filter(Match.first_dragon_taken.isnot(None)).count()
+    first_dragon_taken_count = session.query(Match).filter(Match.first_dragon_taken == True).count()
+
+    first_dragon_rate = (first_dragon_taken_count / total_matches_dragon) * 100 if total_matches_dragon > 0 else None
+
+    # 3️⃣ Calculer le % de premier Void Grubs pris en ignorant les NULL
+    total_matches_void_grubs = session.query(Match).filter(Match.first_void_grubs_taken.isnot(None)).count()
+    first_void_grubs_taken_count = session.query(Match).filter(Match.first_void_grubs_taken == True).count()
+
+    first_void_grubs_rate = (first_void_grubs_taken_count / total_matches_void_grubs) * 100 if total_matches_void_grubs > 0 else None
+
+    # 4️⃣ Charger tous les joueurs depuis PostgreSQL
     df_players = get_all_players()
 
-    # 3) Combiner les données des joueurs et leurs agrégats
+    # 5️⃣ Combiner les données des joueurs et leurs agrégats
     rows = []
     for _, rowp in df_players.iterrows():
         player_id = rowp["player_id"]
-        agg = get_player_aggregates(player_id)  # Ex : kills, deaths, total_games, etc.
-        simulate_mode = False  # Changez cette variable pour tester
+        agg = get_player_aggregates(player_id)
+        simulate_mode = False  
         in_game = is_player_in_game(rowp["puuid"], simulate_mode)
 
         rows.append({
             "player_id": player_id,
             "game_name": rowp["game_name"],
             "tag_line": rowp["tag_line"],
-            "rank": rowp["rank"],    # Division : I, II, III, IV
-            "tier": rowp["tier"],    # Niveau : Challenger, Diamond, etc.
+            "rank": rowp["rank"],
+            "tier": rowp["tier"],
             "lp": rowp["league_points"],
             "winrate": agg.get("winrate", 0),
             "total_games": agg.get("total_games", 0),
@@ -166,7 +180,7 @@ def index():
 
     df_all = pd.DataFrame(rows)
 
-    # 4) Classements secondaires
+    # 6️⃣ Classements secondaires
     top_kills = df_all.sort_values("kills", ascending=False).head(6).to_dict(orient="records")
     top_deaths = df_all.sort_values("deaths", ascending=False).head(6).to_dict(orient="records")
     top_assists = df_all.sort_values("assists", ascending=False).head(6).to_dict(orient="records")
@@ -177,7 +191,7 @@ def index():
     best_total_time = df_all.sort_values("time_hours", ascending=False).head(6).to_dict(orient="records")
     most_champions = df_all.sort_values("unique_champions", ascending=False).head(6).to_dict(orient="records")
 
-    # 5) Classement par rang (tri multi-critères)
+    # 7️⃣ Classement par rang (tri multi-critères)
     df_all["tier_norm"] = df_all["tier"].str.strip().str.upper().map(tier_order)
     df_all["division_norm"] = df_all["rank"].str.strip().str.upper().map(division_order)
     df_all["tier_norm"] = df_all["tier_norm"].fillna(tier_order["UNRANKED"])
@@ -188,7 +202,7 @@ def index():
         ascending=[True, True, False]
     ).head(6).to_dict(orient="records")
 
-    # 6) Formatage de la date de mise à jour
+    # 8️⃣ Formatage de la date de mise à jour
     if last_update is not None:
         last_update_str = last_update.strftime("%d/%m/%Y %H:%M")
     else:
@@ -196,10 +210,15 @@ def index():
 
     print(f"📅 Envoi de la dernière mise à jour à la page : {last_update}")
 
+    # ✅ Fermer la session
+    session.close()
+
     return render_template(
         "rankings.html",
         last_update=last_update_str,
         stats=stats_global,
+        first_dragon_rate=first_dragon_rate,  # ✅ Ajout du pourcentage de premier dragon
+        first_void_grubs_rate=first_void_grubs_rate,  # ✅ Ajout du pourcentage de premier Void Grubs
         most_kills_list=top_kills,
         most_deaths_list=top_deaths,
         most_assists_list=top_assists,

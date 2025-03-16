@@ -2,7 +2,7 @@ import requests
 import os
 import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey, func
+from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey, func, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import exists
@@ -28,6 +28,21 @@ engine = create_engine(DATABASE_URL, poolclass=NullPool)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+class Match(Base):
+    __tablename__ = 'matches'
+    match_id = Column(String, primary_key=True)
+    player_id = Column(String, ForeignKey('players.player_id'), primary_key=True)
+    champion = Column(String)
+    role = Column(String)
+    kills = Column(Integer)
+    deaths = Column(Integer)
+    assists = Column(Integer)
+    game_duration = Column(Integer)
+    win = Column(Boolean)
+    first_dragon_taken = Column(Boolean, nullable=True)
+    first_void_grubs_taken = Column(Boolean, nullable=True)
+
+
 class Player(Base):
     __tablename__ = 'players'
     player_id = Column(String, primary_key=True, index=True)
@@ -43,18 +58,6 @@ class Player(Base):
     losses = Column(Integer)
     winrate = Column(Float)
     total_ranked_games = Column(Integer)
-
-class Match(Base):
-    __tablename__ = 'matches'
-    match_id = Column(String, primary_key=True)
-    player_id = Column(String, ForeignKey('players.player_id'), primary_key=True)
-    champion = Column(String)
-    role = Column(String)
-    kills = Column(Integer)
-    deaths = Column(Integer)
-    assists = Column(Integer)
-    game_duration = Column(Integer)
-    win = Column(Boolean)
 
 API_KEY = os.getenv("RIOT_API_KEY")
 
@@ -103,23 +106,6 @@ def get_player_main_role(player_id):
             return "UNKNOWN", 0
     finally:
         session.close()
-
-    # Ensuite, on récupère le rôle le plus joué
-    cursor.execute('''
-        SELECT role, COUNT(*) as count
-        FROM matches
-        WHERE player_id = ?
-        GROUP BY role
-        ORDER BY count DESC
-        LIMIT 1
-    ''', (player_id,))
-    
-    row = cursor.fetchone()
-    conn.close()
-
-    if row:
-        return row[0], (row[1] / total_games) * 100  # Pourcentage basé sur le nombre total de parties
-    return "UNKNOWN", 0
 
 def get_top_3_champions(player_id):
     """Retourne les 3 champions les plus joués en utilisant SQLAlchemy."""
@@ -185,7 +171,12 @@ def get_ranked_stats(summoner_id):
         print(f"❌ Erreur API Ranked : {response.status_code}")
         return None
 
+from sqlalchemy.exc import IntegrityError
+
 def update_recent_matches(puuid, player_id, session):
+    """
+    Met à jour les matchs récents d'un joueur avec les nouvelles stats (Premier Dragon, Void Grubs, etc.)
+    """
     with open(PLAYERS_FILE, "r") as file:
         allowed_players = {line.strip().split("#")[0] + "#" + line.strip().split("#")[1] for line in file.readlines()}
 
@@ -203,38 +194,52 @@ def update_recent_matches(puuid, player_id, session):
         match_url = f"https://europe.api.riotgames.com/lol/match/v5/matches/{match_id}"
         match_response = requests.get(match_url, headers=headers)
         if match_response.status_code != 200:
-            continue
+            continue  # Si erreur, on passe au match suivant
 
         match_data = match_response.json()
-        if match_data['info']['queueId'] != 420:
+        if match_data['info']['queueId'] != 420:  # Vérifier que c'est bien un match classé
             continue
 
-        for participant in match_data['info']['participants']:
+        for participant in match_data["info"]["participants"]:
             match_player_id = f"{participant['riotIdGameName']}#{participant['riotIdTagline']}"
+
             if match_player_id in allowed_players:
-                # Vérifier si le match existe déjà avant d'insérer
-                if session.query(Match).filter_by(match_id=match_id, player_id=match_player_id).first():
-                    print(f"⚠️ Match {match_id} déjà enregistré pour {match_player_id}, on saute l'insertion.")
-                    continue  # ✅ Empêche l'erreur `UniqueViolation`
+                # Vérifier si le match existe déjà
+                existing_match = session.query(Match).filter_by(match_id=match_id, player_id=match_player_id).first()
 
-                new_match = Match(
-                    match_id=match_id,
-                    player_id=match_player_id,
-                    champion=participant['championName'],
-                    role=participant['teamPosition'],
-                    kills=participant['kills'],
-                    deaths=participant['deaths'],
-                    assists=participant['assists'],
-                    game_duration=match_data['info']['gameDuration'],
-                    win=participant['win']
-                )
+                # Récupérer les stats du premier dragon et des Void Grubs
+                first_dragon_taken = did_player_take_first_dragon(match_data, participant["puuid"])
+                first_void_grubs_taken = did_player_take_first_void_grubs(match_data, participant["puuid"])
 
-                try:
-                    session.add(new_match)
-                    session.commit()
-                except IntegrityError:
-                    session.rollback()  # Annule l'insertion si une erreur survient
-                    print(f"⚠️ Conflit d'insertion : Match {match_id} pour {match_player_id} existe déjà.")
+                if existing_match:
+                    if existing_match.first_dragon_taken is None or existing_match.first_void_grubs_taken is None:
+                        existing_match.first_dragon_taken = first_dragon_taken if existing_match.first_dragon_taken is None else existing_match.first_dragon_taken
+                        existing_match.first_void_grubs_taken = first_void_grubs_taken if existing_match.first_void_grubs_taken is None else existing_match.first_void_grubs_taken
+                        session.commit()
+                
+                else:
+                    # ✅ Insérer un nouveau match proprement
+                    new_match = Match(
+                        match_id=match_id,
+                        player_id=match_player_id,
+                        champion=participant['championName'],
+                        role=participant['teamPosition'],
+                        kills=participant['kills'],
+                        deaths=participant['deaths'],
+                        assists=participant['assists'],
+                        game_duration=match_data['info']['gameDuration'],
+                        win=participant['win'],
+                        first_dragon_taken=first_dragon_taken,
+                        first_void_grubs_taken=first_void_grubs_taken
+                    )
+
+                    try:
+                        session.add(new_match)
+                        session.commit()
+                        print(f"✅ Match {match_id} ajouté avec First Dragon = {first_dragon_taken}, First Void Grubs = {first_void_grubs_taken}")
+                    except IntegrityError:
+                        session.rollback()
+                        print(f"⚠️ Conflit d'insertion : Match {match_id} pour {match_player_id} existe déjà.")
 
 
 
@@ -253,6 +258,48 @@ def get_global_stats():
         "global_winrate": global_winrate,
         "total_time": total_time
     }
+
+def did_player_take_first_dragon(match_data, player_puuid):
+    """
+    Vérifie si le joueur faisait partie de l'équipe qui a pris le premier dragon.
+    """
+    # Trouver l'équipe du joueur
+    player_team_id = None
+    for participant in match_data["info"]["participants"]:
+        if participant["puuid"] == player_puuid:
+            player_team_id = participant["teamId"]
+            break
+    
+    if player_team_id is None:
+        return False  # Impossible de trouver l'équipe du joueur
+
+    # Vérifier si cette équipe a pris le premier dragon
+    for team in match_data["info"]["teams"]:
+        if team["teamId"] == player_team_id:
+            return team["objectives"]["dragon"]["first"]
+
+    return False  # Par défaut, si aucune info
+
+def did_player_take_first_void_grubs(match_data, player_puuid):
+    """
+    Vérifie si le joueur faisait partie de l'équipe qui a pris le premier Void Grubs (appelé 'horde' dans l'API Riot).
+    """
+    player_team_id = None
+    for participant in match_data["info"]["participants"]:
+        if participant["puuid"] == player_puuid:
+            player_team_id = participant["teamId"]
+            break
+    
+    if player_team_id is None:
+        return False  # Impossible de trouver l'équipe du joueur
+
+    # Vérifier si cette équipe a pris le premier Void Grubs
+    for team in match_data["info"]["teams"]:
+        if "horde" in team["objectives"]:  # ✅ Correction : 'horde' est utilisé pour Void Grubs
+            if team["teamId"] == player_team_id:
+                return team["objectives"]["horde"]["first"]  # ✅ True si l'équipe a pris le premier Void Grubs
+
+    return False  # Par défaut, False
 
 def update_players():
     create_database()  # Assurez-vous que les tables PostgreSQL existent
@@ -356,7 +403,7 @@ def get_player_aggregates(player_id):
         "unique_champions": uniq_champs or 0,
         "match_count": match_count or 0,
         "avg_time": avg_time,
-        "time_hours": time_hours
+        "time_hours": time_hours,
     }
 
 
@@ -367,4 +414,5 @@ if __name__ == "__main__":
 __all__ = ["engine", "SessionLocal", "Base", "Player", "Match", 
            "is_player_in_game", "get_player_main_role", "get_top_3_champions", 
            "create_database", "get_puuid", "get_summoner_info", "get_ranked_stats", 
-           "update_recent_matches", "get_global_stats", "update_players", "get_player_aggregates"]
+           "update_recent_matches", "get_global_stats", "update_players", "get_player_aggregates",
+           "update_old_matches_with_dragon"]
