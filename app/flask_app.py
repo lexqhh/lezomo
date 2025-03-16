@@ -13,7 +13,7 @@ load_dotenv()
 print("Current working directory:", os.getcwd())
 
 
-# --- ICI C'EST LE FICHIER WEBSITE - AJOUTER "app." devant data_manager pour que ça fonctionne ---
+# --- ICI C'EST LE FICHIER WEBSITE - ajouter "app." devant data_manager pour que ça fonctionne ---
 from app.data_manager import engine, SessionLocal, Base, Player, Match, get_global_stats, update_players, get_player_main_role, get_top_3_champions, is_player_in_game, get_player_aggregates
 
 app = Flask(__name__, static_folder=os.path.join(os.getcwd(), "static"))
@@ -133,22 +133,10 @@ def index():
     stats_global = get_global_stats()
     stats_global["formatted_time"] = format_duration(stats_global["total_time"])
 
-    # 2️⃣ Calculer le % de premier dragon pris en ignorant les NULL
-    total_matches_dragon = session.query(Match).filter(Match.first_dragon_taken.isnot(None)).count()
-    first_dragon_taken_count = session.query(Match).filter(Match.first_dragon_taken == True).count()
-
-    first_dragon_rate = (first_dragon_taken_count / total_matches_dragon) * 100 if total_matches_dragon > 0 else None
-
-    # 3️⃣ Calculer le % de premier Void Grubs pris en ignorant les NULL
-    total_matches_void_grubs = session.query(Match).filter(Match.first_void_grubs_taken.isnot(None)).count()
-    first_void_grubs_taken_count = session.query(Match).filter(Match.first_void_grubs_taken == True).count()
-
-    first_void_grubs_rate = (first_void_grubs_taken_count / total_matches_void_grubs) * 100 if total_matches_void_grubs > 0 else None
-
-    # 4️⃣ Charger tous les joueurs depuis PostgreSQL
+    # 2️⃣ Charger tous les joueurs depuis PostgreSQL
     df_players = get_all_players()
 
-    # 5️⃣ Combiner les données des joueurs et leurs agrégats
+    # 3️⃣ Combiner les données des joueurs et leurs agrégats
     rows = []
     for _, rowp in df_players.iterrows():
         player_id = rowp["player_id"]
@@ -156,6 +144,29 @@ def index():
         simulate_mode = False  
         in_game = is_player_in_game(rowp["puuid"], simulate_mode)
 
+        # 🐉 Calculer le % de premier Drake pris en ignorant les NULL
+        total_matches_dragon = session.query(Match).filter(
+            Match.player_id == player_id, Match.first_dragon_taken.isnot(None)
+        ).count()
+        
+        first_dragon_taken_count = session.query(Match).filter(
+            Match.player_id == player_id, Match.first_dragon_taken == True
+        ).count()
+        
+        first_dragon_rate = (first_dragon_taken_count / total_matches_dragon) * 100 if total_matches_dragon > 0 else 0
+
+        # 🦀 Calculer le % de premier Void Grubs pris en ignorant les NULL
+        total_matches_void_grubs = session.query(Match).filter(
+            Match.player_id == player_id, Match.first_void_grubs_taken.isnot(None)
+        ).count()
+        
+        first_void_grubs_taken_count = session.query(Match).filter(
+            Match.player_id == player_id, Match.first_void_grubs_taken == True
+        ).count()
+        
+        first_void_grubs_rate = (first_void_grubs_taken_count / total_matches_void_grubs) * 100 if total_matches_void_grubs > 0 else 0
+
+        # 📌 Ajouter toutes les données du joueur dans la liste `rows`
         rows.append({
             "player_id": player_id,
             "game_name": rowp["game_name"],
@@ -175,7 +186,9 @@ def index():
             "avg_time": agg.get("avg_time", 0),
             "time_hours": agg.get("time_hours", 0),
             "unique_champions": agg.get("unique_champions", 0),
-            "in_game": in_game
+            "in_game": in_game,
+            "first_dragon_rate": first_dragon_rate,  # 🐉 Ajouté ici
+            "first_void_grubs_rate": first_void_grubs_rate,  # 🦀 Ajouté ici
         })
 
     df_all = pd.DataFrame(rows)

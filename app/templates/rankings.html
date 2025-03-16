@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="{{ url_for('static', filename='js/modal.js') }}" defer></script>
 </head>
 <body>
     
@@ -17,7 +18,7 @@
     </div>
 
 
-        <h2>Classement des SCOOTS POUR VOUS</h2>
+    <h2>Classement des SCOOTS POUR VOUS</h2>
     <table class="player-rankings main-table">
         <thead>
             <tr>
@@ -34,8 +35,9 @@
             <tr>
                 <td>
                     <div class="player-info">
-                        <img src="https://ddragon.leagueoflegends.com/cdn/14.4.1/img/profileicon/29.png" alt="icon">
-                        <span>
+                        <img src="https://ddragon.leagueoflegends.com/cdn/14.4.1/img/profileicon/29.png" 
+                             alt="icon" class="player-icon" data-player="{{ player.player_id }}">
+                        <span class="player-name" data-player="{{ player.player_id }}">
                             {% if player.game_name == "ARCHIMONSTRE" %}
                                 Axel
                             {% elif player.game_name == "GiJudge" %}
@@ -78,7 +80,7 @@
                     </span>
                 </td>                
                 <td>{{ player.winrate|int }}%</td>
-                <td>{{ player.kda|round (1) }}</td>
+                <td>{{ player.kda|round(1) }}</td>
                 <td class="champions-cell">
                     {% for champion in player.champions %}
                         {% if champion != "Unknown" %}
@@ -87,6 +89,32 @@
                     {% endfor %}
                 </td>
             </tr>
+    
+            <!-- Modale spécifique pour chaque joueur -->
+            <div id="modal-{{ player.player_id }}" class="modal">
+                <div class="modal-content">
+                    <span class="close" data-player="{{ player.player_id }}">&times;</span>
+                    <h2>{{ player.game_name }}</h2>
+                    <p>Rôle principal : {{ player.role }} ({{ player.role_percentage|int }}%)</p>
+                    <p>Rang : {{ player.tier }} {{ player.rank }} ({{ player.lp }} LP)</p>
+                    <p>Winrate : {{ player.winrate|int }}%</p>
+                    <p>KDA : {{ player.kda|round(1) }}</p>
+                    
+                    <!-- Ajout des nouvelles stats avec les emojis 🐉 et 🦀 -->
+                    <p>🐉 % de 1er Drake pris : {{ player.first_dragon_rate|round(1) }}%</p>
+                    <p>🦀 % de 1er Void Grub pris : {{ player.first_void_grubs_rate|round(1) }}%</p>
+            
+                    <h3>Champions les plus joués :</h3>
+                    <div class="champions-container">
+                        {% for champion in player.champions %}
+                            {% if champion != "Unknown" %}
+                                <img src="https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion/{{ champion }}.png" alt="{{ champion }}">
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+    
             {% endfor %}
         </tbody>
     </table>
@@ -333,7 +361,6 @@
             Mis à jour le : {{ last_update }}
         </div>
     </footer>
-
 
 </body>
 </html>
