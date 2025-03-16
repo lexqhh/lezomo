@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, send_file, url_for
+from flask import Flask, render_template, jsonify, send_file, url_for, redirect
 import pandas as pd
 import os
 import datetime
@@ -43,12 +43,20 @@ division_order = {
     "IV": 4
 }
 
+from flask import redirect, url_for
+
 @app.route("/update-db", methods=["GET"])
 def update_db():
-    update_players()  # Exécute la mise à jour
     global last_update
-    last_update = datetime.datetime.now(TZ)
-    return jsonify({"message": "Base de données mise à jour !"}), 200
+    try:
+        update_players()  
+        last_update = datetime.datetime.now(TZ)
+        print(f"🔄 Mise à jour enregistrée à : {last_update}")
+        return redirect(url_for("index"))  # ✅ Redirection vers la page principale
+    except Exception as e:
+        print(f"❌ Erreur dans /update-db : {e}")  
+        return jsonify({"error": "Erreur lors de la mise à jour de la base."}), 500
+
 
 @app.route("/download-db", methods=["GET"])
 def download_db():
@@ -179,6 +187,8 @@ def index():
         last_update_str = last_update.strftime("%d/%m/%Y %H:%M")
     else:
         last_update_str = "Pas encore mise à jour"
+
+    print(f"📅 Envoi de la dernière mise à jour à la page : {last_update}")
 
     return render_template(
         "rankings.html",
